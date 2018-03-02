@@ -26,7 +26,7 @@ describe('REST API client', () => {
   it('can ping api', (done) => {
     nock('http://fakeapi.foo')
       .get('/api/2/ping/')
-      .reply(200, '{ pong: "pong" }');
+      .reply(200, '{ "pong": "pong" }');
 
     const client = new rest.Client({ url: 'http://fakeapi.foo/' });
 
