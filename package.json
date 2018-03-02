@@ -4,9 +4,9 @@
   "description": "SmartFile API client for node.js.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --recursive --full-trace",
-    "coverage": "istanbul cover _mocha -- -- test/**/*",
-    "lint": "eslint --format node_modules/eslint-friendly-formatter .",
+    "test": "mocha --recursive --full-trace tests/**/*",
+    "coverage": "istanbul cover _mocha -- -- tests/**/*",
+    "lint": "eslint --format node_modules/eslint-friendly-formatter ."
   },
   "repository": {
     "type": "git",
