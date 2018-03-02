@@ -1,6 +1,10 @@
 const rest = require('../lib/rest');
 const nock = require('nock');
 const assert = require('assert');
+const morph = require('mock-env').morph;
+
+
+API_URL = 'http://fakeapi.foo/'
 
 
 function assertHttpOK(e) {
@@ -11,11 +15,14 @@ function assertHttpOK(e) {
 }
 
 describe('REST API client', () => {
-  /*
+  let client, server;
+
   beforeEach('', function(done) {
+    client = new rest.Client({ url: API_URL });
+    server = nock(API_URL);
+
     done();
   });
-  */
 
   /*
   afterEach('', function(done) {
@@ -23,12 +30,28 @@ describe('REST API client', () => {
   });
   */
 
+  it('reads config from env', (done) => {
+    let alternate;
+
+    morph(() => {
+      alternate = new rest.BasicClient();
+    }, {
+      SMARTFILE_URL: API_URL,
+      SMARTFILE_USER: 'foobar',
+      SMARTFILE_PASS: 'baz',
+    });
+
+    assert(alternate.url === API_URL)
+    assert(alternate.username === 'foobar')
+    assert(alternate.password === 'baz')
+
+    done();
+  });
+
   it('can ping api', (done) => {
-    nock('http://fakeapi.foo')
+    server
       .get('/api/2/ping/')
       .reply(200, '{ "pong": "pong" }');
-
-    const client = new rest.Client({ url: 'http://fakeapi.foo/' });
 
     client.ping((e, json) => {
       assertHttpOK(e);
@@ -37,4 +60,5 @@ describe('REST API client', () => {
       done();
     });
   });
+
 });
