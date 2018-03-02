@@ -7,7 +7,6 @@
     "test": "mocha --recursive --full-trace",
     "coverage": "istanbul cover _mocha -- -- test/**/*",
     "lint": "eslint --format node_modules/eslint-friendly-formatter .",
-    "test-dbg": "mocha debug --recursive --full-trace"
   },
   "repository": {
     "type": "git",
@@ -25,6 +24,13 @@
   "author": "SmartFile",
   "license": "MIT",
   "dependencies": {
-    "request": "2.83.0"
+    "request": "^2.83.0",
+    "eslint": "^3.16.1",
+    "eslint-config-airbnb-base": "^11.1.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-node": "^4.1.0",
+    "eslint-friendly-formatter": "^2.0.7",
+    "mocha": "^3.2.0",
+    "istanbul": "^0.4.5"
   }
 }
