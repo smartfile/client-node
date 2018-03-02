@@ -33,6 +33,7 @@
     "mocha": "^3.2.0",
     "istanbul": "^0.4.5",
     "nock": "^9.0.9",
-    "mock-env": "^0.2.0"
+    "mock-env": "^0.2.0",
+    "memory-streams": "^0.1.3"
   }
 }
