@@ -155,12 +155,19 @@ describe('REST API client', () => {
       .query({ children: 'true' })
       .reply(200, '{ "page": 1, "pages": 1, "results": [{ "name": "foo" }, { "name": "bar" }]}');
 
+    let calls = 0;
     client.info('/foobar', (e, json) => {
       assertHttpOK(e);
-      if (json) {
+
+      calls++;
+
+      if (calls == 1) {
         assert(json[0].name === 'foo');
-      } else {
+      } else if (calls == 2) {
+        assert(json === null);
         done();
+      } else {
+        assert.fail('too many calls');
       }
     }, { children: true });
   });
@@ -174,15 +181,32 @@ describe('REST API client', () => {
     server
       .get('/api/2/path/info/foobar')
       .query({ children: 'true', 'page': 2 })
-      .reply(200, '{ "page": 2, "pages": 2, "results": [{ "name": "foo" }, { "name": "bar" }]}');
+      .reply(200, '{ "page": 2, "pages": 2, "results": [{ "name": "baz" }, { "name": "quux" }]}');
 
-
+    let calls = 0;
     client.info('/foobar', (e, json) => {
       assertHttpOK(e);
-      if (json) {
-        assert(json[0].name === 'foo');
-      } else {
-        done();
+
+      calls++;
+
+      // Should receive 3 calls, 2 pages plus null.
+      switch (calls) {
+        case 1:
+          assert(json[0].name === 'foo');
+          break;
+
+        case 2:
+          assert(json[0].name === 'baz');
+          break;
+
+        case 3:
+          assert(json === null);
+          done();
+          break;
+
+        default:
+          assert.fail('too many calls');
+          break;
       }
     }, { children: true });
   });
