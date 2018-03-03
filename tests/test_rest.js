@@ -141,12 +141,14 @@ describe('REST API client', () => {
 
   it('can retrieve information about a path', (done) => {
     server
-      .post()
-      .reply();
+      .get('/api/2/path/info/foobar')
+      .reply(200, '{ "name": "foo" }');
 
-    client.info();
-
-    done();
+    client.info('/foobar', (e, json) => {
+      assertHttpOK(e);
+      assert(json.name === 'foo');
+      done();
+    });
   });
 
   it('can retrieve a directory listing', (done) => {
