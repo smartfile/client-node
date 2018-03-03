@@ -161,15 +161,20 @@ describe('REST API client', () => {
     client.info('/foobar', (e, json) => {
       assertHttpOK(e);
 
-      calls++;
+      // Should receive 2 calls, a page of results plus null.
+      switch (++calls) {
+        case 1:
+          assert(json[0].name === 'foo');
+          break;
 
-      if (calls == 1) {
-        assert(json[0].name === 'foo');
-      } else if (calls == 2) {
-        assert(json === null);
-        done();
-      } else {
-        assert.fail('too many calls');
+        case 2:
+          assert(json === null);
+          done();
+          break;
+
+        default:
+          assert.fail('too many callback');
+          break;
       }
     }, { children: true });
   });
@@ -189,10 +194,8 @@ describe('REST API client', () => {
     client.info('/foobar', (e, json) => {
       assertHttpOK(e);
 
-      calls++;
-
       // Should receive 3 calls, 2 pages plus null.
-      switch (calls) {
+      switch (++calls) {
         case 1:
           assert(json[0].name === 'foo');
           break;
@@ -207,7 +210,7 @@ describe('REST API client', () => {
           break;
 
         default:
-          assert.fail('too many calls');
+          assert.fail('too many callbacks');
           break;
       }
     }, { children: true });
