@@ -70,11 +70,11 @@ describe('REST API client', () => {
 
     server
       .get('/api/2/ping/')
-      .reply(200, '{ "pong": "pong" }');
+      .reply(200, '{ "ping": "pong" }');
 
     client.ping((e, json) => {
       assertHttpOK(e);
-      assert(json.pong === 'pong');
+      assert(json.ping === 'pong');
 
       done();
     });
@@ -90,7 +90,7 @@ describe('REST API client', () => {
     let ws = new streams.WritableStream();
 
     server
-      .get('/api/2/data/foobar')
+      .get('/api/2/path/data/foobar')
       .reply(200, 'BODY');
 
     client.download('/foobar', (e) => {
@@ -110,7 +110,7 @@ describe('REST API client', () => {
     */
 
     server
-      .get('/api/2/data/foobar')
+      .get('/api/2/path/data/foobar')
       .reply(200, 'BODY');
 
     client.download('/foobar', (e, r) => {
@@ -129,7 +129,7 @@ describe('REST API client', () => {
     let rs = fs.createReadStream('/tmp/foo.txt');
 
     server
-      .post('/api/2/data/foobar')
+      .post('/api/2/path/data/foobar')
       .reply(200, '{"size": 4, "name": "foobar", "path": "/foobar"}');
 
     client.upload('/foobar', (e, json) => {
@@ -137,6 +137,53 @@ describe('REST API client', () => {
       assert(json.name === 'foobar');
       done();
     }, rs);
+  });
 
+  it('can retrieve information about a path', (done) => {
+    server
+      .post()
+      .reply();
+
+    client.info();
+
+    done();
+  });
+
+  it('can retrieve a directory listing', (done) => {
+    server
+      .get('/api/2/path/info/foobar')
+      .query({ children: 'true' })
+      .reply(200, '{ "page": 1, "pages": 1, "results": [{ "name": "foo" }, { "name": "bar" }]}');
+
+    client.info('/foobar', (e, json) => {
+      assertHttpOK(e);
+      if (json) {
+        assert(json[0].name === 'foo');
+      } else {
+        done();
+      }
+    }, { children: true });
+  });
+
+  it('can retrieve a multi-page directory listing', (done) => {
+    server
+      .get('/api/2/path/info/foobar')
+      .query({ children: 'true' })
+      .reply(200, '{ "page": 1, "pages": 2, "results": [{ "name": "foo" }, { "name": "bar" }]}');
+
+    server
+      .get('/api/2/path/info/foobar')
+      .query({ children: 'true', 'page': 2 })
+      .reply(200, '{ "page": 2, "pages": 2, "results": [{ "name": "foo" }, { "name": "bar" }]}');
+
+
+    client.info('/foobar', (e, json) => {
+      assertHttpOK(e);
+      if (json) {
+        assert(json[0].name === 'foo');
+      } else {
+        done();
+      }
+    }, { children: true });
   });
 });
