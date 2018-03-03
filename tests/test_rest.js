@@ -1,9 +1,10 @@
-const rest = require('../lib/rest');
 const nock = require('nock');
 const assert = require('assert');
 const morph = require('mock-env').morph;
 const streams = require('memory-streams');
 const fs = require('fs');
+
+const rest = require('../lib/rest');
 
 
 API_URL = 'http://fakeapi.foo/'
@@ -17,6 +18,34 @@ function assertHttpOK(e) {
   assert(e === null);
 }
 
+
+describe('REST API client', () => {
+  it('can read config from env', (done) => {
+    /*
+    This test instantiates a client without any options.
+
+    It then ensures the client has picked up configuration options from the
+    environment. However, we use mock-env.morph to only temporarily set
+    "environment" variables for this test.
+    */
+
+    let client;
+
+    morph(() => {
+      client = new rest.BasicClient();
+    }, {
+      SMARTFILE_URL: API_URL,
+      SMARTFILE_USER: 'foobar',
+      SMARTFILE_PASS: 'baz',
+    });
+
+    assert(client.url === API_URL)
+    assert(client.username === 'foobar')
+    assert(client.password === 'baz')
+
+    done();
+  });
+});
 
 describe('REST API client', () => {
   let client, server;
@@ -33,32 +62,6 @@ describe('REST API client', () => {
     done();
   });
   */
-
-  it('can read config from env', (done) => {
-    /*
-    This test instantiates a client without any options.
-
-    It then ensures the client has picked up configuration options from the
-    environment. However, we use mock-env.morph to only temporarily set
-    "environment" variables for this test.
-    */
-
-    let alternate;
-
-    morph(() => {
-      alternate = new rest.BasicClient();
-    }, {
-      SMARTFILE_URL: API_URL,
-      SMARTFILE_USER: 'foobar',
-      SMARTFILE_PASS: 'baz',
-    });
-
-    assert(alternate.url === API_URL)
-    assert(alternate.username === 'foobar')
-    assert(alternate.password === 'baz')
-
-    done();
-  });
 
   it('can ping api', (done) => {
     /*
