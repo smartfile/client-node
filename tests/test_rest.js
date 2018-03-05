@@ -9,7 +9,7 @@ const rest = require('../lib/rest');
 const API_URL = 'http://fakeapi.foo/'
 
 
-function assertHttpOK(e) {
+function assertNoError(e) {
   // Assertion to ensure that error is omitted inside a callback.
   if (e) {
     console.log(e);
@@ -74,7 +74,7 @@ describe('REST API client', () => {
       .reply(200, '{ "ping": "pong" }');
 
     client.ping((e, json) => {
-      assertHttpOK(e);
+      assertNoError(e);
       assert(json.ping === 'pong');
 
       done();
@@ -93,7 +93,7 @@ describe('REST API client', () => {
       .reply(200, '{ "username": "user" }');
     
       client.whoami((e, json) => {
-        assertHttpOK(e);
+        assertNoError(e);
         assert(json.username === 'user');
 
         done();
@@ -114,7 +114,7 @@ describe('REST API client', () => {
       .reply(200, 'BODY');
 
     client.download('/foobar', (e) => {
-      assertHttpOK(e);
+      assertNoError(e);
       console.log(ws.toString());
       assert(ws.toString() === 'BODY');
       done();
@@ -135,7 +135,7 @@ describe('REST API client', () => {
       .reply(200, 'BODY');
 
     client.download('/foobar', (e, r) => {
-      assertHttpOK(e);
+      assertNoError(e);
 
       r.on('data', (data) => {
         assert(data.toString() === 'BODY');
@@ -154,7 +154,7 @@ describe('REST API client', () => {
       .reply(200, '{"size": 4, "name": "foobar", "path": "/foobar"}');
 
     client.upload('/foobar', (e, json) => {
-      assertHttpOK(e);
+      assertNoError(e);
       assert(json.name === 'foobar');
       done();
     }, rs);
@@ -166,7 +166,7 @@ describe('REST API client', () => {
       .reply(200, '{ "name": "foo" }');
 
     client.info('/foobar', (e, json) => {
-      assertHttpOK(e);
+      assertNoError(e);
       assert(json.name === 'foo');
       done();
     });
@@ -180,7 +180,7 @@ describe('REST API client', () => {
 
     let calls = 0;
     client.info('/foobar', (e, json) => {
-      assertHttpOK(e);
+      assertNoError(e);
 
       // Should receive 2 calls, a page of results plus null.
       switch (++calls) {
@@ -214,7 +214,7 @@ describe('REST API client', () => {
 
     let calls = 0;
     client.info('/foobar', (e, json) => {
-      assertHttpOK(e);
+      assertNoError(e);
 
       // Should receive 3 calls, 2 pages plus null.
       switch (++calls) {
@@ -246,7 +246,7 @@ describe('REST API client', () => {
       .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
 
     client.mkdir('/foobar', (e, json) => {
-      assertHttpOK(e);
+      assertNoError(e);
       assert(json.name === 'foobar');
       assert(json.isdir === true);
 
@@ -257,7 +257,7 @@ describe('REST API client', () => {
   it('can delete a file or directory', (done) => {
     server
       .post('/api/2/path/oper/remove/', 'path=%2Ffoobar')
-      .reply(200, '{ "task_id": "12345" }');
+      .reply(200, '{ "uuid": "12345" }');
 
     server
       .get('/api/2/task/12345/')
@@ -268,7 +268,7 @@ describe('REST API client', () => {
       .reply(200, ' { "result": { "status": "SUCCESS" }}');
 
     client.delete('/foobar', (e, json) => {
-      assertHttpOK(e);
+      assertNoError(e);
       assert(json.result.status == 'SUCCESS');
 
       done();
@@ -278,14 +278,14 @@ describe('REST API client', () => {
   it('can copy a file or directory', (done) => {
     server
       .post('/api/2/path/oper/copy/', 'src=%2Ffoobar&dst=%2Fbaz')
-      .reply(200, '{ "task_id": "12345" }');
+      .reply(200, '{ "uuid": "12345" }');
 
     server
       .get('/api/2/task/12345/')
       .reply(200, ' { "result": { "status": "SUCCESS" }}');
 
     client.copy('/foobar', '/baz', (e, json) => {
-      assertHttpOK(e);
+      assertNoError(e);
 
       done();
     })
@@ -294,14 +294,14 @@ describe('REST API client', () => {
   it('can move a file or directory', (done) => {
     server
       .post('/api/2/path/oper/move/', 'src=%2Ffoobar&dst=%2Fbaz')
-      .reply(200, '{ "task_id": "12345" }');
+      .reply(200, '{ "uuid": "12345" }');
 
     server
       .get('/api/2/task/12345/')
       .reply(200, ' { "result": { "status": "SUCCESS" }}');
 
     client.move('/foobar', '/baz', (e, json) => {
-      assertHttpOK(e);
+      assertNoError(e);
 
       done();
     })

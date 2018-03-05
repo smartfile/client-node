@@ -9,7 +9,7 @@ const smartfile_fs = require('../lib/fs');
 const API_URL = 'http://fakeapi.foo/'
 
 
-function assertHttpOK(e) {
+function assertNoError(e) {
   // Assertion to ensure that error is omitted inside a callback.
   if (e) {
     console.log(e);
@@ -39,7 +39,7 @@ describe('File System Abstraction', () => {
       }
 
       f.read(4, (e, data) => {
-        assertHttpOK(e);
+        assertNoError(e);
         assert(data.toString() === 'BODY');
         done();
       });
@@ -63,7 +63,7 @@ describe('File System Abstraction', () => {
         }
 
         f.close((e) => {
-          assertHttpOK(e);
+          assertNoError(e);
           assert(uploader.isDone());
 
           done();
