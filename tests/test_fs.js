@@ -9,6 +9,14 @@ const smartfile_fs = require('../lib/fs');
 const API_URL = 'http://fakeapi.foo/'
 
 
+function assertHttpOK(e) {
+  // Assertion to ensure that error is omitted inside a callback.
+  if (e) {
+    console.log(e);
+  }
+  assert(e === null);
+}
+
 describe('File System Abstraction', () => {
   let server, sffs;
 
@@ -31,7 +39,7 @@ describe('File System Abstraction', () => {
       }
 
       f.read(4, (e, data) => {
-        assert(e === null);
+        assertHttpOK(e);
         assert(data.toString() === 'BODY');
         done();
       });
@@ -39,7 +47,7 @@ describe('File System Abstraction', () => {
   });
 
   it('can open a file for writing', (done) => {
-    server
+    uploader = server
       .post('/api/2/path/data/foobar')
       .reply(200, '{ "name": "foobar" }');
 
@@ -54,7 +62,12 @@ describe('File System Abstraction', () => {
           return console.log(e);
         }
 
-        done();
+        f.close((e) => {
+          assertHttpOK(e);
+          assert(uploader.isDone());
+
+          done();
+        });
       });
     });
   });
