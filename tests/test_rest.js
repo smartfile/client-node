@@ -38,9 +38,9 @@ describe('REST API client', () => {
       SMARTFILE_PASS: 'baz',
     });
 
-    assert(client.url === API_URL)
-    assert(client.username === 'foobar')
-    assert(client.password === 'baz')
+    assert(client.options.baseUrl === API_URL)
+    assert(client.options.auth.user === 'foobar')
+    assert(client.options.auth.pass === 'baz')
 
     done();
   });
@@ -50,7 +50,7 @@ describe('REST API client', () => {
   let client, server;
 
   beforeEach('', function(done) {
-    client = new rest.Client({ url: API_URL });
+    client = new rest.Client({ baseUrl: API_URL });
     server = nock(API_URL);
 
     done();

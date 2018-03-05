@@ -21,7 +21,7 @@ describe('File System Abstraction', () => {
   let server, sffs;
 
   beforeEach('', function(done) {
-    const rest = new smartfile.Client({ url: API_URL });
+    const rest = new smartfile.Client({ baseUrl: API_URL });
     sffs = new smartfile_fs.FileSystem(rest);
     server = nock(API_URL);
 
