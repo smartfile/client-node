@@ -6,8 +6,7 @@ const fs = require('fs');
 
 const rest = require('../lib/rest');
 
-
-API_URL = 'http://fakeapi.foo/'
+const API_URL = 'http://fakeapi.foo/'
 
 
 function assertHttpOK(e) {
@@ -70,7 +69,6 @@ describe('REST API client', () => {
     The JSON returned by the API is parsed and returned to callback as the
     second parameter.
     */
-
     server
       .get('/api/2/ping/')
       .reply(200, '{ "ping": "pong" }');
@@ -81,6 +79,25 @@ describe('REST API client', () => {
 
       done();
     });
+  });
+
+  it('can request information about current user', (done) => {
+    /*
+    This test calls the whoami API endpoint.
+
+    The JSON returned by the API is parsed and returned to callback as the
+    second parameter.
+    */
+    server
+      .get(`/api/2/whoami/`)
+      .reply(200, '{ "username": "user" }');
+    
+      client.whoami((e, json) => {
+        assertHttpOK(e);
+        assert(json.username === 'user');
+
+        done();
+      });
   });
 
   it('can pipe download to stream', (done) => {
@@ -217,5 +234,72 @@ describe('REST API client', () => {
           break;
       }
     }, { children: true });
+  });
+
+  it('can create a directory', (done) => {
+    server
+      .put('/api/2/path/oper/mkdir/foobar')
+      .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
+
+    client.mkdir('/foobar', (e, json) => {
+      assertHttpOK(e);
+      assert(json.name === 'foobar');
+      assert(json.isdir === true);
+
+      done();
+    });
+  });
+
+  it('can delete a file or directory', (done) => {
+    server
+      .post('/api/2/path/oper/remove/', 'path=%2Ffoobar')
+      .reply(200, '{ "task_id": "12345" }');
+
+    server
+      .get('/api/2/task/12345/')
+      .reply(200, ' { "result": { "status": "PENDING" }}');
+
+    server
+      .get('/api/2/task/12345/')
+      .reply(200, ' { "result": { "status": "SUCCESS" }}');
+
+    client.delete('/foobar', (e, json) => {
+      assertHttpOK(e);
+      assert(json.result.status == 'SUCCESS');
+
+      done();
+    });
+  });
+
+  it('can copy a file or directory', (done) => {
+    server
+      .post('/api/2/path/oper/copy/', 'src=%2Ffoobar&dst=%2Fbaz')
+      .reply(200, '{ "task_id": "12345" }');
+
+    server
+      .get('/api/2/task/12345/')
+      .reply(200, ' { "result": { "status": "SUCCESS" }}');
+
+    client.copy('/foobar', '/baz', (e, json) => {
+      assertHttpOK(e);
+
+      done();
+    })
+  });
+
+  it('can move a file or directory', (done) => {
+    server
+      .post('/api/2/path/oper/move/', 'src=%2Ffoobar&dst=%2Fbaz')
+      .reply(200, '{ "task_id": "12345" }');
+
+    server
+      .get('/api/2/task/12345/')
+      .reply(200, ' { "result": { "status": "SUCCESS" }}');
+
+    client.move('/foobar', '/baz', (e, json) => {
+      assertHttpOK(e);
+
+      done();
+    })
   });
 });
