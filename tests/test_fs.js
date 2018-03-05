@@ -17,6 +17,9 @@ function assertNoError(e) {
   assert(e === null);
 }
 
+// NOTE: We only test the open function as all the other actions are trivial
+// wrappers around the rest client functions (which are already tested.)
+
 describe('File System Abstraction', () => {
   let server, sffs;
 

@@ -115,7 +115,6 @@ describe('REST API client', () => {
 
     client.download('/foobar', (e) => {
       assertNoError(e);
-      console.log(ws.toString());
       assert(ws.toString() === 'BODY');
       done();
     }, ws);
