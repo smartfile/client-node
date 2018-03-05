@@ -115,6 +115,7 @@ describe('REST API client', () => {
 
     client.download('/foobar', (e) => {
       assertHttpOK(e);
+      console.log(ws.toString());
       assert(ws.toString() === 'BODY');
       done();
     }, ws);
@@ -185,6 +186,7 @@ describe('REST API client', () => {
       switch (++calls) {
         case 1:
           assert(json[0].name === 'foo');
+          assert(json[1].name === 'bar');
           break;
 
         case 2:
@@ -218,10 +220,12 @@ describe('REST API client', () => {
       switch (++calls) {
         case 1:
           assert(json[0].name === 'foo');
+          assert(json[1].name === 'bar');
           break;
 
         case 2:
           assert(json[0].name === 'baz');
+          assert(json[1].name === 'quux');
           break;
 
         case 3:

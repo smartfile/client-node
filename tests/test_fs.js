@@ -23,14 +23,39 @@ describe('File System Abstraction', () => {
   it('can open a file for reading', (done) => {
     server
       .get('/api/2/path/data/foobar')
-      .reply(200, 'This is the file\'s contents');
+      .reply(200, 'BODY');
 
     sffs.open('/foobar', 'r', (e, f) => {
       if (e) {
-        console.log(e);
-        return;
+        return console.log(e);
       }
-      done();
+
+      f.read(4, (e, data) => {
+        assert(e === null);
+        assert(data.toString() === 'BODY');
+        done();
+      });
+    });
+  });
+
+  it('can open a file for writing', (done) => {
+    server
+      .post('/api/2/path/data/foobar')
+      .reply(200, '{ "name": "foobar" }');
+
+    sffs.open('/foobar', 'w', (e, f) => {
+      if (e) {
+        return console.log(e);
+      }
+
+      const buffer = new Buffer('BODY');
+      f.write(buffer, (e, r) => {
+        if (e) {
+          return console.log(e);
+        }
+
+        done();
+      });
     });
   });
 });
