@@ -51,7 +51,7 @@ describe('File System Abstraction', () => {
 
   it('can open a file for writing', (done) => {
     uploader = server
-      .post('/api/2/path/data/foobar')
+      .post('/api/2/path/data/')
       .reply(200, '{ "name": "foobar" }');
 
     sffs.open('/foobar', 'w', (e, f) => {

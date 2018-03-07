@@ -149,7 +149,7 @@ describe('REST API client', () => {
     let rs = fs.createReadStream('/tmp/foo.txt');
 
     server
-      .post('/api/2/path/data/foobar')
+      .post('/api/2/path/data/')
       .reply(200, '{"size": 4, "name": "foobar", "path": "/foobar"}');
 
     client.upload('/foobar', (e, json) => {
