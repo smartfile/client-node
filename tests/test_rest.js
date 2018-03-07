@@ -175,7 +175,7 @@ describe('REST API client', () => {
     server
       .get('/api/2/path/info/foobar')
       .query({ children: 'true' })
-      .reply(200, '{ "page": 1, "pages": 1, "results": [{ "name": "foo" }, { "name": "bar" }]}');
+      .reply(200, '{ "page": 1, "pages": 1, "children": [{ "name": "foo" }, { "name": "bar" }]}');
 
     let calls = 0;
     client.info('/foobar', (e, json) => {
@@ -204,12 +204,12 @@ describe('REST API client', () => {
     server
       .get('/api/2/path/info/foobar')
       .query({ children: 'true' })
-      .reply(200, '{ "page": 1, "pages": 2, "results": [{ "name": "foo" }, { "name": "bar" }]}');
+      .reply(200, '{ "page": 1, "pages": 2, "children": [{ "name": "foo" }, { "name": "bar" }]}');
 
     server
       .get('/api/2/path/info/foobar')
       .query({ children: 'true', 'page': 2 })
-      .reply(200, '{ "page": 2, "pages": 2, "results": [{ "name": "baz" }, { "name": "quux" }]}');
+      .reply(200, '{ "page": 2, "pages": 2, "children": [{ "name": "baz" }, { "name": "quux" }]}');
 
     let calls = 0;
     client.info('/foobar', (e, json) => {
@@ -300,6 +300,18 @@ describe('REST API client', () => {
       .reply(200, ' { "result": { "status": "SUCCESS" }}');
 
     client.move('/foobar', '/baz', (e, json) => {
+      assertNoError(e);
+
+      done();
+    })
+  });
+
+  it('can rename a file or directory', (done) => {
+    server
+      .post('/api/2/path/oper/rename/', 'src=%2Ffoobar&dst=%2Fbaz')
+      .reply(200, '{ }');
+
+    client.rename('/foobar', '/baz', (e, json) => {
       assertNoError(e);
 
       done();
