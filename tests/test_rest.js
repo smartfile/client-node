@@ -69,14 +69,14 @@ describe('REST API client', () => {
     The JSON returned by the API is parsed and returned to callback as the
     second parameter.
     */
-    server
+    const api = server
       .get('/api/2/ping/')
       .reply(200, '{ "ping": "pong" }');
 
     client.ping((e, json) => {
       assertNoError(e);
       assert(json.ping === 'pong');
-
+      assert(api.isDone());
       done();
     });
   });
@@ -88,14 +88,14 @@ describe('REST API client', () => {
     The JSON returned by the API is parsed and returned to callback as the
     second parameter.
     */
-    server
+    const api = server
       .get(`/api/2/whoami/`)
       .reply(200, '{ "username": "user" }');
     
       client.whoami((e, json) => {
         assertNoError(e);
         assert(json.username === 'user');
-
+        assert(api.isDone());
         done();
       });
   });
@@ -107,72 +107,52 @@ describe('REST API client', () => {
     When download() receives a stream, it pipes the downloaded file to that
     stream. It calls callback when piping is complete, or if an error occurs.
     */
-    let ws = new streams.WritableStream();
+    const ws = new streams.WritableStream();
 
     server
       .get('/api/2/path/data/foobar')
       .reply(200, 'BODY');
 
-    client.download('/foobar', (e) => {
-      assertNoError(e);
-      assert(ws.toString() === 'BODY');
-      done();
-    }, ws);
-  });
-
-  it('can pass download response to callback', (done) => {
-    /*
-    This test calls download with a callback only.
-
-    Without a stream, download() will invoke the callback for an error, or will
-    pass a second parameter (response). That response can be used to read the
-    downloaded file data.
-    */
-
-    server
-      .get('/api/2/path/data/foobar')
-      .reply(200, 'BODY');
-
-    client.download('/foobar', (e, r) => {
-      assertNoError(e);
-
-      r.on('data', (data) => {
-        assert(data.toString() === 'BODY');
+    client.download('/foobar')
+      .on('end', (e) => {
+        assert(ws.toString() === 'BODY');
         done();
-      });
-    });
+      })
+      .pipe(ws);
   });
 
   it('can upload a stream', (done) => {
     // TODO: figure out why this is busted, works with a file!
-    //let rs = new streams.ReadableStream('BODY');
-    let rs = fs.createReadStream('/tmp/foo.txt');
+    const rs = new streams.ReadableStream('BODY');
+    rs.append(null);
+    //const rs = new fs.createReadStream('/tmp/foo.txt');
 
-    server
+    const api = server
       .post('/api/2/path/data/')
       .reply(200, '{"size": 4, "name": "foobar", "path": "/foobar"}');
 
-    client.upload('/foobar', (e, json) => {
-      assertNoError(e);
+    rs.pipe(client.upload('/foobar', (e, json) => {
       assert(json.name === 'foobar');
+      assert(api.isDone());
       done();
-    }, rs);
+    }));
   });
 
   it('can retrieve information about a path', (done) => {
-    server
+    const api = server
       .get('/api/2/path/info/foobar')
       .reply(200, '{ "name": "foo" }');
 
     client.info('/foobar', (e, json) => {
       assertNoError(e);
       assert(json.name === 'foo');
+      assert(api.isDone());
       done();
     });
   });
 
   it('can retrieve a directory listing', (done) => {
-    server
+    const api = server
       .get('/api/2/path/info/foobar')
       .query({ children: 'true' })
       .reply(200, '{ "page": 1, "pages": 1, "children": [{ "name": "foo" }, { "name": "bar" }]}');
@@ -190,23 +170,24 @@ describe('REST API client', () => {
 
         case 2:
           assert(json === null);
+          assert(api.isDone());
           done();
           break;
 
         default:
-          assert.fail('too many callback');
+          assert.fail('too many callbacks');
           break;
       }
     }, { children: true });
   });
 
   it('can retrieve a multi-page directory listing', (done) => {
-    server
+    const api0 = server
       .get('/api/2/path/info/foobar')
       .query({ children: 'true' })
       .reply(200, '{ "page": 1, "pages": 2, "children": [{ "name": "foo" }, { "name": "bar" }]}');
 
-    server
+    const api1 = server
       .get('/api/2/path/info/foobar')
       .query({ children: 'true', 'page': 2 })
       .reply(200, '{ "page": 2, "pages": 2, "children": [{ "name": "baz" }, { "name": "quux" }]}');
@@ -225,10 +206,12 @@ describe('REST API client', () => {
         case 2:
           assert(json[0].name === 'baz');
           assert(json[1].name === 'quux');
+          assert(api0.isDone());
           break;
 
         case 3:
           assert(json === null);
+          assert(api1.isDone());
           done();
           break;
 
@@ -240,7 +223,7 @@ describe('REST API client', () => {
   });
 
   it('can create a directory', (done) => {
-    server
+    const api = server
       .put('/api/2/path/oper/mkdir/foobar')
       .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
 
@@ -248,72 +231,76 @@ describe('REST API client', () => {
       assertNoError(e);
       assert(json.name === 'foobar');
       assert(json.isdir === true);
-
+      assert(api.isDone());
       done();
     });
   });
 
   it('can delete a file or directory', (done) => {
-    server
+    const api0 = server
       .post('/api/2/path/oper/remove/', 'path=%2Ffoobar')
       .reply(200, '{ "uuid": "12345" }');
 
-    server
+      const api1 = server
       .get('/api/2/task/12345/')
       .reply(200, ' { "result": { "status": "PENDING" }}');
 
-    server
+      const api2 = server
       .get('/api/2/task/12345/')
       .reply(200, ' { "result": { "status": "SUCCESS" }}');
 
     client.delete('/foobar', (e, json) => {
       assertNoError(e);
       assert(json.result.status == 'SUCCESS');
-
+      assert(api0.isDone());
+      assert(api1.isDone());
+      assert(api2.isDone());
       done();
     });
   });
 
   it('can copy a file or directory', (done) => {
-    server
+    const api0 = server
       .post('/api/2/path/oper/copy/', 'src=%2Ffoobar&dst=%2Fbaz')
       .reply(200, '{ "uuid": "12345" }');
 
-    server
+      const api1 = server
       .get('/api/2/task/12345/')
       .reply(200, ' { "result": { "status": "SUCCESS" }}');
 
     client.copy('/foobar', '/baz', (e, json) => {
       assertNoError(e);
-
+      assert(api0.isDone());
+      assert(api1.isDone());
       done();
     })
   });
 
   it('can move a file or directory', (done) => {
-    server
+    const api0 = server
       .post('/api/2/path/oper/move/', 'src=%2Ffoobar&dst=%2Fbaz')
       .reply(200, '{ "uuid": "12345" }');
 
-    server
+    const api1 = server
       .get('/api/2/task/12345/')
       .reply(200, ' { "result": { "status": "SUCCESS" }}');
 
     client.move('/foobar', '/baz', (e, json) => {
       assertNoError(e);
-
+      assert(api0.isDone());
+      assert(api1.isDone());
       done();
     })
   });
 
   it('can rename a file or directory', (done) => {
-    server
+    const api = server
       .post('/api/2/path/oper/rename/', 'src=%2Ffoobar&dst=%2Fbaz')
       .reply(200, '{ }');
 
     client.rename('/foobar', '/baz', (e, json) => {
       assertNoError(e);
-
+      assert(api.isDone());
       done();
     })
   });

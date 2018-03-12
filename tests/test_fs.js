@@ -32,43 +32,45 @@ describe('File System Abstraction', () => {
   });
 
   it('can open a file for reading', (done) => {
-    server
+    const api = server
       .get('/api/2/path/data/foobar')
       .reply(200, 'BODY');
 
-    sffs.open('/foobar', 'r', (e, f) => {
+    sffs.open('/foobar', null, 'r', (e, fd) => {
       if (e) {
         return console.log(e);
       }
 
-      f.read(4, (e, data) => {
+      const buffer = new Buffer(4);
+      sffs.read(fd, buffer, 0, 4, 0, (e, data) => {
         assertNoError(e);
         assert(data.toString() === 'BODY');
+        assert(api.isDone());
         done();
       });
     });
   });
 
   it('can open a file for writing', (done) => {
-    uploader = server
+    const api = server
       .post('/api/2/path/data/')
       .reply(200, '{ "name": "foobar" }');
 
-    sffs.open('/foobar', 'w', (e, f) => {
+    sffs.open('/foobar', null, 'w', (e, fd) => {
       if (e) {
         return console.log(e);
       }
 
       const buffer = new Buffer('BODY');
-      f.write(buffer, (e, r) => {
+
+      sffs.write(fd, buffer, 0, 4, 0, (e, r) => {
         if (e) {
           return console.log(e);
         }
 
-        f.close((e) => {
+        sffs.close(fd, (e) => {
           assertNoError(e);
-          assert(uploader.isDone());
-
+          assert(api.isDone());
           done();
         });
       });
