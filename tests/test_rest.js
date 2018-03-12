@@ -113,11 +113,10 @@ describe('REST API client', () => {
       .get('/api/2/path/data/foobar')
       .reply(200, 'BODY');
 
-    client.download('/foobar')
-      .on('end', (e) => {
-        assert(ws.toString() === 'BODY');
-        done();
-      })
+    client.download('/foobar', () => {
+      assert(ws.toString() === 'BODY');
+      done();
+    })
       .pipe(ws);
   });
 
