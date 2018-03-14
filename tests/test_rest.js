@@ -130,11 +130,11 @@ describe('REST API client', () => {
       .post('/api/2/path/data/')
       .reply(200, '{"size": 4, "name": "foobar", "path": "/foobar"}');
 
-    rs.pipe(client.upload('/foobar', (e, json) => {
+    client.upload('/foobar', rs, (e, json) => {
       assert(json.name === 'foobar');
       assert(api.isDone());
       done();
-    }));
+    });
   });
 
   it('can retrieve information about a path', (done) => {

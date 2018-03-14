@@ -42,8 +42,9 @@ describe('File System Abstraction', () => {
       }
 
       const buffer = new Buffer(4);
-      sffs.read(fd, buffer, 0, 4, 0, (e, data) => {
+      sffs.read(fd, buffer, 0, 4, 0, (e, bytesRead, data) => {
         assertNoError(e);
+        assert(bytesRead == 4);
         assert(data.toString() === 'BODY');
         assert(api.isDone());
         done();
