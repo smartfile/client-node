@@ -57,7 +57,7 @@ describe('File System Abstraction', () => {
       .post('/api/2/path/data/')
       .reply(200, '{ "name": "foobar" }');
 
-    sffs.open('/foobar', null, 'w', (e, fd) => {
+    sffs.open('/foobar', 'w', null, (e, fd) => {
       if (e) {
         return console.log(e);
       }
