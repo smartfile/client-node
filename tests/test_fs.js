@@ -81,4 +81,30 @@ describe('File System Abstraction', () => {
       });
     });
   });
+
+  it('can delete a missing directory', (done) => {
+    const api = server
+      .post('/api/2/path/oper/remove/', 'path=%2Ffoobar')
+      .reply(404, 'NOT FOUND');
+
+    sffs.rmdir('/foobar', (e, json) => {
+      assertNoError(e);
+      assert(json.result.status == 'SUCCESS');
+      assert(api.isDone());
+      done();
+    });
+  });
+
+  it('can delete a missing file', (done) => {
+    const api = server
+      .post('/api/2/path/oper/remove/', 'path=%2Ffoobar')
+      .reply(404, 'NOT FOUND');
+
+    sffs.unlink('/foobar', (e, json) => {
+      assertNoError(e);
+      assert(json.result.status == 'SUCCESS');
+      assert(api.isDone());
+      done();
+    });
+  });
 });
