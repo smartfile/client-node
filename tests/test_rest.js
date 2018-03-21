@@ -272,7 +272,7 @@ describe('REST API client', () => {
       assert(api0.isDone());
       assert(api1.isDone());
       done();
-    })
+    });
   });
 
   it('can move a file or directory', (done) => {
@@ -289,7 +289,7 @@ describe('REST API client', () => {
       assert(api0.isDone());
       assert(api1.isDone());
       done();
-    })
+    });
   });
 
   it('can rename a file or directory', (done) => {
@@ -300,6 +300,22 @@ describe('REST API client', () => {
     client.rename('/foobar', '/baz', (e, json) => {
       assertNoError(e);
       assert(api.isDone());
+      done();
+    });
+  });
+
+  it('can handle API throttling', (done) => {
+    const api0 = server
+      .get('/api/2/path/info/foobar')
+      .reply(429, 'THROTTLED', { 'X-Throttle': '400; next=0.1 sec' });
+    const api1 = server
+      .get('/api/2/path/info/foobar')
+      .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
+
+    client.info('/foobar', (e, json) => {
+      assertNoError(e);
+      assert(api0.isDone());
+      assert(api1.isDone());
       done();
     })
   });
