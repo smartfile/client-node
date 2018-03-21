@@ -1,6 +1,6 @@
 {
   "name": "smartfile",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "SmartFile API client for node.js.",
   "main": "index.js",
   "scripts": {
