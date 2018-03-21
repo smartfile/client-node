@@ -3,10 +3,14 @@ const assert = require('assert');
 const morph = require('mock-env').morph;
 const streams = require('memory-streams');
 const fs = require('fs');
+const logger = require('winston');
 
 const rest = require('../lib/rest');
 
 const API_URL = 'http://fakeapi.foo/'
+
+
+logger.level = 'error';
 
 
 function assertNoError(e) {

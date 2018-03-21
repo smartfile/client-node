@@ -2,11 +2,15 @@ const nock = require('nock');
 const assert = require('assert');
 const morph = require('mock-env').morph;
 const streams = require('memory-streams');
+const logger = require('winston');
 
 const smartfile = require('../lib/rest');
 const smartfile_fs = require('../lib/fs');
 
 const API_URL = 'http://fakeapi.foo/'
+
+
+logger.level = 'error';
 
 
 function assertNoError(e) {
