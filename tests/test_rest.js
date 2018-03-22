@@ -25,11 +25,11 @@ function assertNoError(e) {
 describe('REST API client', () => {
   it('can properly normalize / encode paths', (done) => {
     assert('/foobar' === rest.normPath('foobar'));
-    assert('/foo%25bar' === rest.normPath('/foo%bar'));
-    assert('/foo%3Fbar' === rest.normPath('/foo?bar'));
-    assert('/foo%26bar' === rest.normPath('/foo&bar'));
-    assert('/foo%23bar' === rest.normPath('/foo#bar'));
-    assert('/foo%2523bar' === rest.normPath('/foo%23bar'));
+    assert('/foo%25bar' === rest.encodePath('/foo%bar'));
+    assert('/foo%3Fbar' === rest.encodePath('/foo?bar'));
+    assert('/foo%26bar' === rest.encodePath('/foo&bar'));
+    assert('/foo%23bar' === rest.encodePath('/foo#bar'));
+    assert('/foo%2523bar' === rest.encodePath('/foo%23bar'));
     done();
   });
 
@@ -237,7 +237,7 @@ describe('REST API client', () => {
 
   it('can create a directory', (done) => {
     const api = server
-      .put('/api/2/path/oper/mkdir/foobar')
+      .post('/api/2/path/oper/mkdir/', { path: '/foobar' })
       .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
 
     client.mkdir('/foobar', (e, json) => {
@@ -251,7 +251,7 @@ describe('REST API client', () => {
 
   it('can delete a file or directory', (done) => {
     const api0 = server
-      .post('/api/2/path/oper/remove/', 'path=%2Ffoobar')
+      .post('/api/2/path/oper/remove/', { path: '/foobar' })
       .reply(200, '{ "uuid": "12345" }');
 
       const api1 = server
@@ -274,7 +274,7 @@ describe('REST API client', () => {
 
   it('can copy a file or directory', (done) => {
     const api0 = server
-      .post('/api/2/path/oper/copy/', 'src=%2Ffoobar&dst=%2Fbaz')
+      .post('/api/2/path/oper/copy/', { src: '/foobar', dst: '/baz' })
       .reply(200, '{ "uuid": "12345" }');
 
       const api1 = server
@@ -291,7 +291,7 @@ describe('REST API client', () => {
 
   it('can move a file or directory', (done) => {
     const api0 = server
-      .post('/api/2/path/oper/move/', 'src=%2Ffoobar&dst=%2Fbaz')
+      .post('/api/2/path/oper/move/', { src: '/foobar', dst: '/baz' })
       .reply(200, '{ "uuid": "12345" }');
 
     const api1 = server
@@ -308,7 +308,7 @@ describe('REST API client', () => {
 
   it('can rename a file or directory', (done) => {
     const api = server
-      .post('/api/2/path/oper/rename/', 'src=%2Ffoobar&dst=%2Fbaz')
+      .post('/api/2/path/oper/rename/', { src: '/foobar', dst: '/baz' })
       .reply(200, '{ }');
 
     client.rename('/foobar', '/baz', (e, json) => {
@@ -322,6 +322,7 @@ describe('REST API client', () => {
     const api0 = server
       .get('/api/2/path/info/foobar')
       .reply(429, 'THROTTLED', { 'X-Throttle': '400; next=0.1 sec' });
+
     const api1 = server
       .get('/api/2/path/info/foobar')
       .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
