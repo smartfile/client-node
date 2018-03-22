@@ -23,6 +23,16 @@ function assertNoError(e) {
 
 
 describe('REST API client', () => {
+  it('can properly normalize / encode paths', (done) => {
+    assert('/foobar' === rest.normPath('foobar'));
+    assert('/foo%25bar' === rest.normPath('/foo%bar'));
+    assert('/foo%3Fbar' === rest.normPath('/foo?bar'));
+    assert('/foo%26bar' === rest.normPath('/foo&bar'));
+    assert('/foo%23bar' === rest.normPath('/foo#bar'));
+    assert('/foo%2523bar' === rest.normPath('/foo%23bar'));
+    done();
+  });
+
   it('can read config from env', (done) => {
     /*
     This test instantiates a client without any options.
@@ -322,5 +332,17 @@ describe('REST API client', () => {
       assert(api1.isDone());
       done();
     })
+  });
+
+  it('properly encodes special chars', (done) => {
+    const api = server
+      .get('/api/2/path/info/foo%26bar')
+      .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
+
+    client.info('foo&bar', (e, json) => {
+      assertNoError(e);
+      assert(api.isDone());
+      done();
+    });
   });
 });
