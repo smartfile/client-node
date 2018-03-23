@@ -108,7 +108,7 @@ describe('File System Abstraction', () => {
     });
   });
 
-  it('can readdir() -- names only', (done) => {
+  it('can readdir()', (done) => {
     const api = server
       .get('/api/2/path/info/foobar')
       .query({ children: 'true', limit: 128 })
@@ -122,7 +122,7 @@ describe('File System Abstraction', () => {
     });
   });
 
-  it('can readdirstats() incrementally', (done) => {
+  it('can readdirstats() -- incrementally', (done) => {
     const api0 = server
       .get('/api/2/path/info/foobar')
       .query({ children: 'true', limit: 128 })
