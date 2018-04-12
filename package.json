@@ -35,8 +35,8 @@
     "mocha": "^3.2.0",
     "mock-env": "^0.2.0",
     "nock": "^9.0.9",
-    "request": "^2.83.0",
     "tmp": "0.0.33",
-    "winston": "^2.4.0"
+    "winston": "^2.4.0",
+    "curl-request": "^1.1.1"
   }
 }
