@@ -167,7 +167,7 @@ describe('REST API client', () => {
   it('can retrieve a directory listing', (done) => {
     const api = server
       .get('/api/2/path/info/foobar')
-      .query({ children: 'true', limit: 128 })
+      .query({ children: 'true', limit: 1024 })
       .reply(200, '{ "page": 1, "pages": 1, "children": [{ "name": "foo" }, { "name": "bar" }]}');
 
     let calls = 0;
@@ -197,12 +197,12 @@ describe('REST API client', () => {
   it('can retrieve a multi-page directory listing', (done) => {
     const api0 = server
       .get('/api/2/path/info/foobar')
-      .query({ children: 'true', limit: 128 })
+      .query({ children: 'true', limit: 1024 })
       .reply(200, '{ "page": 1, "pages": 2, "children": [{ "name": "foo" }, { "name": "bar" }]}');
 
     const api1 = server
       .get('/api/2/path/info/foobar')
-      .query({ children: 'true', limit: 128, page: 2 })
+      .query({ children: 'true', limit: 1024, page: 2 })
       .reply(200, '{ "page": 2, "pages": 2, "children": [{ "name": "baz" }, { "name": "quux" }]}');
 
     let calls = 0;
