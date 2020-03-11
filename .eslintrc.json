@@ -17,6 +17,11 @@
     },
     "rules": {
         "no-console": "off",
+        "no-plusplus": [
+            "error", {
+              "allowForLoopAfterthoughts": true
+            }
+        ],
         "no-restricted-syntax": "off",
 	    "comma-dangle": ["error", {
             "arrays": "always-multiline",

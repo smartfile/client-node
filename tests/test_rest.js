@@ -1,6 +1,6 @@
 const nock = require('nock');
 const assert = require('assert');
-const { morph } = require('mock-env').morph;
+const morph = require('mock-env').morph; // eslint-disable-line prefer-destructuring
 const streams = require('memory-streams');
 
 const rest = require('../lib/rest');
