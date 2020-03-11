@@ -36,8 +36,8 @@
     "eslint-friendly-formatter": "^2.0.7",
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-node": "^4.1.0",
-    "mocha": "^3.2.0",
-    "nock": "^9.0.9",
-    "mock-env": "^0.2.0"
+    "mocha": "^7.1.0",
+    "mock-env": "^0.2.0",
+    "nock": "^9.0.9"
   }
 }
