@@ -49,18 +49,19 @@ describe('REST API client', () => {
       SMARTFILE_PASS: 'baz',
     });
 
-    assert(client.options.baseUrl === API_URL)
-    assert(client.options.auth.user === 'foobar')
-    assert(client.options.auth.pass === 'baz')
+    assert(client.options.baseUrl === API_URL);
+    assert(client.options.auth.user === 'foobar');
+    assert(client.options.auth.pass === 'baz');
 
     done();
   });
 });
 
 describe('REST API client', () => {
-  let client, server;
+  let client;
+  let server;
 
-  beforeEach('', function(done) {
+  beforeEach('', (done) => {
     client = new rest.Client({ baseUrl: API_URL });
     server = nock(API_URL);
 
@@ -100,15 +101,15 @@ describe('REST API client', () => {
     second parameter.
     */
     const api = server
-      .get(`/api/2/whoami/`)
+      .get('/api/2/whoami/')
       .reply(200, '{ "username": "user" }');
-    
-      client.whoami((e, json) => {
-        assertNoError(e);
-        assert(json.username === 'user');
-        assert(api.isDone());
-        done();
-      });
+
+    client.whoami((e, json) => {
+      assertNoError(e);
+      assert(json.username === 'user');
+      assert(api.isDone());
+      done();
+    });
   });
 
   it('can pipe download to stream', (done) => {
@@ -135,7 +136,7 @@ describe('REST API client', () => {
     // TODO: figure out why this is busted, works with a file!
     const rs = new streams.ReadableStream('BODY');
     rs.append(null);
-    //const rs = new fs.createReadStream('/tmp/foo.txt');
+    // const rs = new fs.createReadStream('/tmp/foo.txt');
 
     const api = server
       .post('/api/2/path/data/')
@@ -172,7 +173,7 @@ describe('REST API client', () => {
       assertNoError(e);
 
       // Should receive 2 calls, a page of results plus null.
-      switch (++calls) {
+      switch (calls += 1) {
         case 1:
           assert(json[0].name === 'foo');
           assert(json[1].name === 'bar');
@@ -207,7 +208,7 @@ describe('REST API client', () => {
       assertNoError(e);
 
       // Should receive 3 calls, 2 pages plus null.
-      switch (++calls) {
+      switch (calls += 1) {
         case 1:
           assert(json[0].name === 'foo');
           assert(json[1].name === 'bar');
@@ -251,17 +252,17 @@ describe('REST API client', () => {
       .post('/api/2/path/oper/remove/', { path: '/foobar' })
       .reply(200, '{ "uuid": "12345" }');
 
-      const api1 = server
+    const api1 = server
       .get('/api/2/task/12345/')
       .reply(200, ' { "result": { "status": "PENDING" }}');
 
-      const api2 = server
+    const api2 = server
       .get('/api/2/task/12345/')
       .reply(200, ' { "result": { "status": "SUCCESS" }}');
 
     client.delete('/foobar', (e, json) => {
       assertNoError(e);
-      assert(json.result.status == 'SUCCESS');
+      assert(json.result.status === 'SUCCESS');
       assert(api0.isDone());
       assert(api1.isDone());
       assert(api2.isDone());
@@ -274,11 +275,11 @@ describe('REST API client', () => {
       .post('/api/2/path/oper/copy/', { src: '/foobar', dst: '/baz' })
       .reply(200, '{ "uuid": "12345" }');
 
-      const api1 = server
+    const api1 = server
       .get('/api/2/task/12345/')
       .reply(200, ' { "result": { "status": "SUCCESS" }}');
 
-    client.copy('/foobar', '/baz', (e, json) => {
+    client.copy('/foobar', '/baz', (e) => {
       assertNoError(e);
       assert(api0.isDone());
       assert(api1.isDone());
@@ -295,7 +296,7 @@ describe('REST API client', () => {
       .get('/api/2/task/12345/')
       .reply(200, ' { "result": { "status": "SUCCESS" }}');
 
-    client.move('/foobar', '/baz', (e, json) => {
+    client.move('/foobar', '/baz', (e) => {
       assertNoError(e);
       assert(api0.isDone());
       assert(api1.isDone());
@@ -308,7 +309,7 @@ describe('REST API client', () => {
       .post('/api/2/path/oper/rename/', { src: '/foobar', dst: '/baz' })
       .reply(200, '{ }');
 
-    client.rename('/foobar', '/baz', (e, json) => {
+    client.rename('/foobar', '/baz', (e) => {
       assertNoError(e);
       assert(api.isDone());
       done();
@@ -324,12 +325,12 @@ describe('REST API client', () => {
       .get('/api/2/path/info/foobar')
       .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
 
-    client.info('/foobar', (e, json) => {
+    client.info('/foobar', (e) => {
       assertNoError(e);
       assert(api0.isDone());
       assert(api1.isDone());
       done();
-    })
+    });
   });
 
   it('properly encodes special chars', (done) => {
@@ -337,7 +338,7 @@ describe('REST API client', () => {
       .get('/api/2/path/info/foo%26bar')
       .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
 
-    client.info('foo&bar', (e, json) => {
+    client.info('foo&bar', (e) => {
       assertNoError(e);
       assert(api.isDone());
       done();

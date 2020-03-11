@@ -128,7 +128,6 @@ describe('File System Abstraction', () => {
       .query({ children: 'true', limit: 1024, page: 2 })
       .reply(200, '{ "page": 2, "pages": 2, "children": [{"name": "baz", "size": 10 }, {"name": "quux", "size": 10}]}');
 
-    debugger;
     let calls = 0;
     sffs.readdirstats('/foobar', (e, json) => {
       switch (++calls) {
