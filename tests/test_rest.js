@@ -1,13 +1,16 @@
 const nock = require('nock');
 const assert = require('assert');
-const morph = require('mock-env').morph; // eslint-disable-line prefer-destructuring
+const { morph } = require('mock-env');
 const streams = require('memory-streams');
 
-const rest = require('../lib/rest');
+const {
+  logger, normPath, encodePath, Client,
+} = require('../lib/rest/client');
+const { BasicClient } = require('../lib/rest/basic');
 
 const API_URL = 'http://fakeapi.foo/';
 
-rest.logger.silent = true;
+logger.silent = true;
 
 
 function assertNoError(e) {
@@ -20,12 +23,12 @@ function assertNoError(e) {
 
 describe('REST API client', () => {
   it('can properly normalize / encode paths', (done) => {
-    assert(rest.normPath('foobar') === '/foobar');
-    assert(rest.encodePath('/foo%bar') === '/foo%25bar');
-    assert(rest.encodePath('/foo?bar') === '/foo%3Fbar');
-    assert(rest.encodePath('/foo&bar') === '/foo%26bar');
-    assert(rest.encodePath('/foo#bar') === '/foo%23bar');
-    assert(rest.encodePath('/foo%23bar') === '/foo%2523bar');
+    assert(normPath('foobar') === '/foobar');
+    assert(encodePath('/foo%bar') === '/foo%25bar');
+    assert(encodePath('/foo?bar') === '/foo%3Fbar');
+    assert(encodePath('/foo&bar') === '/foo%26bar');
+    assert(encodePath('/foo#bar') === '/foo%23bar');
+    assert(encodePath('/foo%23bar') === '/foo%2523bar');
     done();
   });
 
@@ -41,7 +44,7 @@ describe('REST API client', () => {
     let client;
 
     morph(() => {
-      client = new rest.BasicClient();
+      client = new BasicClient();
     }, {
       SMARTFILE_URL: API_URL,
       SMARTFILE_USER: 'foobar',
@@ -61,7 +64,7 @@ describe('REST API client', () => {
   let server;
 
   beforeEach('', (done) => {
-    client = new rest.Client({ baseUrl: API_URL });
+    client = new Client({ baseUrl: API_URL });
     server = nock(API_URL);
 
     done();

@@ -1,7 +1,9 @@
-const rest = require('./lib/rest');
-const fs = require('./lib/fs');
+const { Client } = require('./lib/rest/client');
+const { BasicClient } = require('./lib/rest/basic');
+const fs = require('./lib/fs/filesystem');
 
 module.exports = {
-  rest,
+  Client,
+  BasicClient,
   fs,
 };

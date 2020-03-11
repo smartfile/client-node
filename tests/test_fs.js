@@ -1,8 +1,8 @@
 const nock = require('nock');
 const assert = require('assert');
 
-const smartfile = require('../lib/rest');
-const smartfileFS = require('../lib/fs');
+const smartfile = require('../lib/rest/client');
+const smartfileFS = require('../lib/fs/filesystem');
 
 const API_URL = 'http://fakeapi.foo/';
 
