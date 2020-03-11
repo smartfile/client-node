@@ -45,7 +45,7 @@ describe('File System Abstraction', () => {
         return console.log(e);
       }
 
-      const buffer = new Buffer(4);
+      const buffer = Buffer.alloc(4);
       sffs.read(fd, buffer, 0, 4, 0, (e, bytesRead, data) => {
         assertNoError(e);
         assert(bytesRead == 4);
@@ -66,7 +66,7 @@ describe('File System Abstraction', () => {
         return console.log(e);
       }
 
-      const buffer = new Buffer('BODY');
+      const buffer = Buffer.from('BODY');
 
       sffs.write(fd, buffer, 0, 4, 0, (e, r) => {
         if (e) {
