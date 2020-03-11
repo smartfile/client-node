@@ -1,12 +1,11 @@
 const nock = require('nock');
 const assert = require('assert');
-const morph = require('mock-env').morph;
+const { morph } = require('mock-env').morph;
 const streams = require('memory-streams');
-const fs = require('fs');
 
 const rest = require('../lib/rest');
 
-const API_URL = 'http://fakeapi.foo/'
+const API_URL = 'http://fakeapi.foo/';
 
 rest.logger.silent = true;
 
@@ -21,12 +20,12 @@ function assertNoError(e) {
 
 describe('REST API client', () => {
   it('can properly normalize / encode paths', (done) => {
-    assert('/foobar' === rest.normPath('foobar'));
-    assert('/foo%25bar' === rest.encodePath('/foo%bar'));
-    assert('/foo%3Fbar' === rest.encodePath('/foo?bar'));
-    assert('/foo%26bar' === rest.encodePath('/foo&bar'));
-    assert('/foo%23bar' === rest.encodePath('/foo#bar'));
-    assert('/foo%2523bar' === rest.encodePath('/foo%23bar'));
+    assert(rest.normPath('foobar') === '/foobar');
+    assert(rest.encodePath('/foo%bar') === '/foo%25bar');
+    assert(rest.encodePath('/foo?bar') === '/foo%3Fbar');
+    assert(rest.encodePath('/foo&bar') === '/foo%26bar');
+    assert(rest.encodePath('/foo#bar') === '/foo%23bar');
+    assert(rest.encodePath('/foo%23bar') === '/foo%2523bar');
     done();
   });
 

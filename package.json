@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha --recursive --full-trace tests/**/*",
-    "debug": "mocha debug --recursive --full-trace tests/**/*",
+    "debug": "mocha inspect --recursive --full-trace tests/**/*",
     "coverage": "istanbul cover _mocha -- -- tests/**/*",
     "lint": "eslint --format node_modules/eslint-friendly-formatter ."
   },
