@@ -4,9 +4,11 @@ const { morph } = require('mock-env');
 const streams = require('memory-streams');
 
 const {
-  logger, normPath, encodePath, Client,
+  logger, Client, BasicClient,
+} = require('../lib');
+const {
+  normPath, encodePath,
 } = require('../lib/rest/client');
-const { BasicClient } = require('../lib/rest/basic');
 
 const API_URL = 'http://fakeapi.foo/';
 
