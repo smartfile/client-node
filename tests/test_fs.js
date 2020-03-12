@@ -1,35 +1,29 @@
 const nock = require('nock');
 const assert = require('assert');
-const morph = require('mock-env').morph;
-const streams = require('memory-streams');
-const logger = require('winston');
 
-const smartfile = require('../lib/rest');
-const smartfile_fs = require('../lib/fs');
+const smartfile = require('../lib/rest/client');
+const smartfileFS = require('../lib/fs/filesystem');
 
-const API_URL = 'http://fakeapi.foo/'
-
-
-logger.level = 'error';
+const API_URL = 'http://fakeapi.foo/';
 
 
 function assertNoError(e) {
   // Assertion to ensure that error is omitted inside a callback.
   if (e) {
-    console.log(e);
+    throw e;
   }
-  assert(e === null);
 }
 
 // NOTE: We only test the open function as all the other actions are trivial
 // wrappers around the rest client functions (which are already)
 
 describe('File System Abstraction', () => {
-  let server, sffs;
+  let server;
+  let sffs;
 
-  beforeEach('', function(done) {
+  beforeEach('', (done) => {
     const rest = new smartfile.Client({ baseUrl: API_URL });
-    sffs = new smartfile_fs.FileSystem(rest);
+    sffs = new smartfileFS.FileSystem(rest);
     server = nock(API_URL);
 
     done();
@@ -40,15 +34,16 @@ describe('File System Abstraction', () => {
       .get('/api/2/path/data/foobar')
       .reply(200, 'BODY');
 
-    sffs.open('/foobar', null, 'r', (e, fd) => {
-      if (e) {
-        return console.log(e);
+    sffs.open('/foobar', null, 'r', (openError, fd) => {
+      if (openError) {
+        console.log(openError);
+        return;
       }
 
-      const buffer = new Buffer(4);
-      sffs.read(fd, buffer, 0, 4, 0, (e, bytesRead, data) => {
-        assertNoError(e);
-        assert(bytesRead == 4);
+      const buffer = Buffer.alloc(4);
+      sffs.read(fd, buffer, 0, 4, 0, (readError, bytesRead, data) => {
+        assertNoError(readError);
+        assert(bytesRead === 4);
         assert(data.toString() === 'BODY');
         assert(api.isDone());
         done();
@@ -61,20 +56,22 @@ describe('File System Abstraction', () => {
       .post('/api/2/path/data/')
       .reply(200, '{ "name": "foobar" }');
 
-    sffs.open('/foobar', 'w', null, (e, fd) => {
-      if (e) {
-        return console.log(e);
+    sffs.open('/foobar', 'w', null, (openError, fd) => {
+      if (openError) {
+        console.log(openError);
+        return;
       }
 
-      const buffer = new Buffer('BODY');
+      const buffer = Buffer.from('BODY');
 
-      sffs.write(fd, buffer, 0, 4, 0, (e, r) => {
-        if (e) {
-          return console.log(e);
+      sffs.write(fd, buffer, 0, 4, 0, (writeError) => {
+        if (writeError) {
+          console.log(writeError);
+          return;
         }
 
-        sffs.close(fd, (e) => {
-          assertNoError(e);
+        sffs.close(fd, (closeError) => {
+          assertNoError(closeError);
           assert(api.isDone());
           done();
         });
@@ -89,7 +86,7 @@ describe('File System Abstraction', () => {
 
     sffs.rmdir('/foobar', (e, json) => {
       assertNoError(e);
-      assert(json.result.status == 'SUCCESS');
+      assert(json.result.status === 'SUCCESS');
       assert(api.isDone());
       done();
     });
@@ -102,7 +99,7 @@ describe('File System Abstraction', () => {
 
     sffs.unlink('/foobar', (e, json) => {
       assertNoError(e);
-      assert(json.result.status == 'SUCCESS');
+      assert(json.result.status === 'SUCCESS');
       assert(api.isDone());
       done();
     });
@@ -135,17 +132,17 @@ describe('File System Abstraction', () => {
 
     let calls = 0;
     sffs.readdirstats('/foobar', (e, json) => {
-      switch (++calls) {
+      switch (calls += 1) {
         case 1:
           assertNoError(e);
-          assert(json[0].name == 'foo');
-          assert(json[1].name == 'bar');
+          assert(json[0].name === 'foo');
+          assert(json[1].name === 'bar');
           break;
 
         case 2:
           assertNoError(e);
-          assert(json[0].name == 'baz');
-          assert(json[1].name == 'quux');
+          assert(json[0].name === 'baz');
+          assert(json[1].name === 'quux');
           assert(api0.isDone());
           break;
 
@@ -154,6 +151,8 @@ describe('File System Abstraction', () => {
           assert(json === null);
           assert(api1.isDone());
           done();
+          break;
+
         default:
           assert.fail('too many callbacks');
           break;

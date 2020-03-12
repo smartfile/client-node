@@ -1,7 +1,11 @@
 {
+    "env": {
+        "mocha": true
+    },
     "extends": "airbnb-base",
     "plugins": [
-        "import"
+        "import",
+        "mocha"
     ],
     "globals": {
         "logger": true,
@@ -12,8 +16,14 @@
 	"AssertionError": true
     },
     "rules": {
+        "no-console": "off",
+        "no-plusplus": [
+            "error", {
+              "allowForLoopAfterthoughts": true
+            }
+        ],
         "no-restricted-syntax": "off",
-	"comma-dangle": ["error", {
+	    "comma-dangle": ["error", {
             "arrays": "always-multiline",
             "objects": "always-multiline",
             "imports": "always-multiline",

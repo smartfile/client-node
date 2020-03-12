@@ -1,14 +1,26 @@
+node_modules: package.json
+	npm install
+	touch node_modules
+
+.PHONY: deps
+deps: node_modules
+
 .PHONY: test
-test:
+test: deps
 	npm run test
 
 .PHONY: debug
-debug:
+debug: deps
 	npm run debug
 
 .PHONY: lint
-lint:
+lint: deps
 	npm run lint
 
 .PHONY: ci
 ci: test lint
+
+.PHONY: clean
+clean:
+	rm -rf node_modules
+

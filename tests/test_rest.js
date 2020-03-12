@@ -1,35 +1,34 @@
 const nock = require('nock');
 const assert = require('assert');
-const morph = require('mock-env').morph;
+const { morph } = require('mock-env');
 const streams = require('memory-streams');
-const fs = require('fs');
-const logger = require('winston');
 
-const rest = require('../lib/rest');
+const {
+  logger, normPath, encodePath, Client,
+} = require('../lib/rest/client');
+const { BasicClient } = require('../lib/rest/basic');
 
-const API_URL = 'http://fakeapi.foo/'
+const API_URL = 'http://fakeapi.foo/';
 
-
-logger.level = 'error';
+logger.silent = true;
 
 
 function assertNoError(e) {
   // Assertion to ensure that error is omitted inside a callback.
   if (e) {
-    console.log(e);
+    throw e;
   }
-  assert(e === null);
 }
 
 
 describe('REST API client', () => {
   it('can properly normalize / encode paths', (done) => {
-    assert('/foobar' === rest.normPath('foobar'));
-    assert('/foo%25bar' === rest.encodePath('/foo%bar'));
-    assert('/foo%3Fbar' === rest.encodePath('/foo?bar'));
-    assert('/foo%26bar' === rest.encodePath('/foo&bar'));
-    assert('/foo%23bar' === rest.encodePath('/foo#bar'));
-    assert('/foo%2523bar' === rest.encodePath('/foo%23bar'));
+    assert(normPath('foobar') === '/foobar');
+    assert(encodePath('/foo%bar') === '/foo%25bar');
+    assert(encodePath('/foo?bar') === '/foo%3Fbar');
+    assert(encodePath('/foo&bar') === '/foo%26bar');
+    assert(encodePath('/foo#bar') === '/foo%23bar');
+    assert(encodePath('/foo%23bar') === '/foo%2523bar');
     done();
   });
 
@@ -45,26 +44,27 @@ describe('REST API client', () => {
     let client;
 
     morph(() => {
-      client = new rest.BasicClient();
+      client = new BasicClient();
     }, {
       SMARTFILE_URL: API_URL,
       SMARTFILE_USER: 'foobar',
       SMARTFILE_PASS: 'baz',
     });
 
-    assert(client.options.baseUrl === API_URL)
-    assert(client.options.auth.user === 'foobar')
-    assert(client.options.auth.pass === 'baz')
+    assert(client.options.baseUrl === API_URL);
+    assert(client.options.auth.user === 'foobar');
+    assert(client.options.auth.pass === 'baz');
 
     done();
   });
 });
 
 describe('REST API client', () => {
-  let client, server;
+  let client;
+  let server;
 
-  beforeEach('', function(done) {
-    client = new rest.Client({ baseUrl: API_URL });
+  beforeEach('', (done) => {
+    client = new Client({ baseUrl: API_URL });
     server = nock(API_URL);
 
     done();
@@ -103,15 +103,15 @@ describe('REST API client', () => {
     second parameter.
     */
     const api = server
-      .get(`/api/2/whoami/`)
+      .get('/api/2/whoami/')
       .reply(200, '{ "username": "user" }');
-    
-      client.whoami((e, json) => {
-        assertNoError(e);
-        assert(json.username === 'user');
-        assert(api.isDone());
-        done();
-      });
+
+    client.whoami((e, json) => {
+      assertNoError(e);
+      assert(json.username === 'user');
+      assert(api.isDone());
+      done();
+    });
   });
 
   it('can pipe download to stream', (done) => {
@@ -138,7 +138,7 @@ describe('REST API client', () => {
     // TODO: figure out why this is busted, works with a file!
     const rs = new streams.ReadableStream('BODY');
     rs.append(null);
-    //const rs = new fs.createReadStream('/tmp/foo.txt');
+    // const rs = new fs.createReadStream('/tmp/foo.txt');
 
     const api = server
       .post('/api/2/path/data/')
@@ -175,7 +175,7 @@ describe('REST API client', () => {
       assertNoError(e);
 
       // Should receive 2 calls, a page of results plus null.
-      switch (++calls) {
+      switch (calls += 1) {
         case 1:
           assert(json[0].name === 'foo');
           assert(json[1].name === 'bar');
@@ -210,7 +210,7 @@ describe('REST API client', () => {
       assertNoError(e);
 
       // Should receive 3 calls, 2 pages plus null.
-      switch (++calls) {
+      switch (calls += 1) {
         case 1:
           assert(json[0].name === 'foo');
           assert(json[1].name === 'bar');
@@ -254,17 +254,17 @@ describe('REST API client', () => {
       .post('/api/2/path/oper/remove/', { path: '/foobar' })
       .reply(200, '{ "uuid": "12345" }');
 
-      const api1 = server
+    const api1 = server
       .get('/api/2/task/12345/')
       .reply(200, ' { "result": { "status": "PENDING" }}');
 
-      const api2 = server
+    const api2 = server
       .get('/api/2/task/12345/')
       .reply(200, ' { "result": { "status": "SUCCESS" }}');
 
     client.delete('/foobar', (e, json) => {
       assertNoError(e);
-      assert(json.result.status == 'SUCCESS');
+      assert(json.result.status === 'SUCCESS');
       assert(api0.isDone());
       assert(api1.isDone());
       assert(api2.isDone());
@@ -277,11 +277,11 @@ describe('REST API client', () => {
       .post('/api/2/path/oper/copy/', { src: '/foobar', dst: '/baz' })
       .reply(200, '{ "uuid": "12345" }');
 
-      const api1 = server
+    const api1 = server
       .get('/api/2/task/12345/')
       .reply(200, ' { "result": { "status": "SUCCESS" }}');
 
-    client.copy('/foobar', '/baz', (e, json) => {
+    client.copy('/foobar', '/baz', (e) => {
       assertNoError(e);
       assert(api0.isDone());
       assert(api1.isDone());
@@ -298,7 +298,7 @@ describe('REST API client', () => {
       .get('/api/2/task/12345/')
       .reply(200, ' { "result": { "status": "SUCCESS" }}');
 
-    client.move('/foobar', '/baz', (e, json) => {
+    client.move('/foobar', '/baz', (e) => {
       assertNoError(e);
       assert(api0.isDone());
       assert(api1.isDone());
@@ -311,7 +311,7 @@ describe('REST API client', () => {
       .post('/api/2/path/oper/rename/', { src: '/foobar', dst: '/baz' })
       .reply(200, '{ }');
 
-    client.rename('/foobar', '/baz', (e, json) => {
+    client.rename('/foobar', '/baz', (e) => {
       assertNoError(e);
       assert(api.isDone());
       done();
@@ -327,12 +327,12 @@ describe('REST API client', () => {
       .get('/api/2/path/info/foobar')
       .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
 
-    client.info('/foobar', (e, json) => {
+    client.info('/foobar', (e) => {
       assertNoError(e);
       assert(api0.isDone());
       assert(api1.isDone());
       done();
-    })
+    });
   });
 
   it('properly encodes special chars', (done) => {
@@ -340,7 +340,7 @@ describe('REST API client', () => {
       .get('/api/2/path/info/foo%26bar')
       .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
 
-    client.info('foo&bar', (e, json) => {
+    client.info('foo&bar', (e) => {
       assertNoError(e);
       assert(api.isDone());
       done();
