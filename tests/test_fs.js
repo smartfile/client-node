@@ -1,8 +1,7 @@
 const nock = require('nock');
 const assert = require('assert');
 
-const smartfile = require('../lib/rest/client');
-const smartfileFS = require('../lib/fs/filesystem');
+const smartfile = require('../lib');
 
 const API_URL = 'http://fakeapi.foo/';
 
@@ -23,7 +22,7 @@ describe('File System Abstraction', () => {
 
   beforeEach('', (done) => {
     const rest = new smartfile.Client({ baseUrl: API_URL });
-    sffs = new smartfileFS.FileSystem(rest);
+    sffs = new smartfile.FileSystem(rest);
     server = nock(API_URL);
 
     done();
