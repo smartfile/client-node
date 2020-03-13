@@ -6,7 +6,7 @@
   "scripts": {
     "test": "mocha --recursive --full-trace tests/**/*",
     "debug": "mocha inspect --recursive --full-trace tests/**/*",
-    "coverage": "istanbul cover _mocha -- -- tests/**/*",
+    "coverage": "nyc npm run test",
     "lint": "eslint --format node_modules/eslint-friendly-formatter ."
   },
   "repository": {
@@ -31,6 +31,7 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
+    "nyc": "^15.0.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-friendly-formatter": "^4.0.1",
