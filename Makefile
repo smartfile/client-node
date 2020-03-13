@@ -20,6 +20,10 @@ lint: deps
 .PHONY: ci
 ci: test lint
 
+.PHONY: coverage
+coverage:
+	npm run coverage
+
 .PHONY: clean
 clean:
 	rm -rf node_modules
