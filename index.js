@@ -1,5 +1,5 @@
 const {
-  Client, BasicClient, FileSystem, logger,
+  Client, BasicClient, FileSystem, logger, metrics,
 } = require('./lib');
 
 module.exports = {
@@ -7,4 +7,5 @@ module.exports = {
   BasicClient,
   FileSystem,
   logger,
+  metrics,
 };
