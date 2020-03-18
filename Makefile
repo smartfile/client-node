@@ -24,6 +24,10 @@ ci: test lint
 coverage:
 	npm run coverage
 
+.PHONY: version
+version:
+	npm version ${VERSION}
+
 .PHONY: clean
 clean:
 	rm -rf node_modules
