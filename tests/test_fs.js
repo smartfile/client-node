@@ -2,6 +2,8 @@ const nock = require('nock');
 const assert = require('assert');
 
 const smartfile = require('../lib');
+const { CACHE_HIT } = require('../lib/fs/filesystem');
+
 
 const API_URL = 'http://fakeapi.foo/';
 
@@ -11,6 +13,19 @@ function assertNoError(e) {
   if (e) {
     throw e;
   }
+}
+
+function assertMetric(metric, value) {
+  // Asserts that a paritcular metric has the desired value.
+  // This function assumes only one instance of the metrics (unique label set).
+  // Also, value === 0 is a special case, it allows the metric to be missing.
+  const { values } = metric.get();
+
+  if (values.length === 0 && value === 0) {
+    return;
+  }
+  assert(values.length);
+  assert(values[0].value === value);
 }
 
 // NOTE: We only test the open function as all the other actions are trivial
@@ -108,7 +123,7 @@ describe('File System Abstraction', () => {
     const api = server
       .get('/api/2/path/info/foobar')
       .query({ children: 'true', limit: 1024 })
-      .reply(200, '{ "children": [{"name": "foo", "size": 10 }, {"name": "bar", "size": 10}]}');
+      .reply(200, '{ "children": [{"name": "foo", "path": "/foobar/foo", "size": 10 }, {"name": "bar", "path": "/foobar/bar", "size": 10}]}');
 
     sffs.readdir('/foobar', (e, json) => {
       assertNoError(e);
@@ -118,16 +133,37 @@ describe('File System Abstraction', () => {
     });
   });
 
+  it('can stat() from cache', (done) => {
+    const api = server
+      .get('/api/2/path/info/foobar')
+      .query({ children: 'true', limit: 1024 })
+      .reply(200, '{ "children": [{"name": "foo", "path": "/foobar/foo", "size": 10 }, {"name": "bar", "path": "/foobar/bar", "size": 10}]}');
+
+    sffs.readdir('/foobar', (readdirError, readDirJson) => {
+      assertNoError(readdirError);
+      assert(readDirJson.sort().toString() === ['bar', 'foo'].sort().toString());
+      assert(api.isDone());
+
+      // Ensure a follow-on stat() call succeeds (from cache)
+      sffs.stat('/foobar/foo', (statError, statJson) => {
+        assertNoError(statError);
+        assertMetric(CACHE_HIT, 1);
+        assert(statJson.name === 'foo');
+        done();
+      });
+    });
+  });
+
   it('can readdirstats() -- incrementally', (done) => {
     const api0 = server
       .get('/api/2/path/info/foobar')
       .query({ children: 'true', limit: 1024 })
-      .reply(200, '{ "page": 1, "pages": 2, "children": [{"name": "foo", "size": 10 }, {"name": "bar", "size": 10}]}');
+      .reply(200, '{ "page": 1, "pages": 2, "children": [{"name": "foo", "path": "/foobar/foo", "size": 10 }, {"name": "bar", "path": "/foobar/bar", "size": 10}]}');
 
     const api1 = server
       .get('/api/2/path/info/foobar')
       .query({ children: 'true', limit: 1024, page: 2 })
-      .reply(200, '{ "page": 2, "pages": 2, "children": [{"name": "baz", "size": 10 }, {"name": "quux", "size": 10}]}');
+      .reply(200, '{ "page": 2, "pages": 2, "children": [{"name": "baz", "path": "/foobar/baz", "size": 10 }, {"name": "quux", "path": "/foobar/quux", "size": 10}]}');
 
     let calls = 0;
     sffs.readdirstats('/foobar', (e, json) => {

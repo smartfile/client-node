@@ -258,11 +258,11 @@ describe('REST API client', () => {
 
     const api1 = server
       .get('/api/2/task/12345/')
-      .reply(200, ' { "result": { "status": "PENDING" }}');
+      .reply(200, ' { "result": { "status": "PENDING", "result": {} }}');
 
     const api2 = server
       .get('/api/2/task/12345/')
-      .reply(200, ' { "result": { "status": "SUCCESS" }}');
+      .reply(200, ' { "result": { "status": "SUCCESS", "result": {} }}');
 
     client.delete('/foobar', (e, json) => {
       assertNoError(e);
@@ -281,10 +281,27 @@ describe('REST API client', () => {
 
     const api1 = server
       .get('/api/2/task/12345/')
-      .reply(200, ' { "result": { "status": "SUCCESS" }}');
+      .reply(200, ' { "result": { "status": "SUCCESS", "result": {} }}');
 
     client.copy('/foobar', '/baz', (e) => {
       assertNoError(e);
+      assert(api0.isDone());
+      assert(api1.isDone());
+      done();
+    });
+  });
+
+  it('can detect a partial failure', (done) => {
+    const api0 = server
+      .post('/api/2/path/oper/copy/', { src: '/foobar', dst: '/baz' })
+      .reply(200, '{ "uuid": "12345" }');
+
+    const api1 = server
+      .get('/api/2/task/12345/')
+      .reply(200, ' { "result": { "status": "SUCCESS", "result": { "errors": { "/foobar": "failed" }}}}');
+
+    client.copy('/foobar', '/baz', (e) => {
+      assert(e);
       assert(api0.isDone());
       assert(api1.isDone());
       done();
@@ -298,7 +315,7 @@ describe('REST API client', () => {
 
     const api1 = server
       .get('/api/2/task/12345/')
-      .reply(200, ' { "result": { "status": "SUCCESS" }}');
+      .reply(200, ' { "result": { "status": "SUCCESS", "result": {}}}');
 
     client.move('/foobar', '/baz', (e) => {
       assertNoError(e);
