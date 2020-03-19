@@ -9,6 +9,11 @@
     "coverage": "nyc npm run test",
     "lint": "eslint --format node_modules/eslint-friendly-formatter ."
   },
+  "husky": {
+    "hooks": {
+      "pre-push": "npm run lint"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/smartfile/client-node.git"
@@ -37,8 +42,9 @@
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-friendly-formatter": "^4.0.1",
     "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-node": "^11.0.0",
     "eslint-plugin-mocha": "^6.3.0",
+    "eslint-plugin-node": "^11.0.0",
+    "husky": "^4.2.3",
     "mocha": "^7.1.0",
     "mock-env": "^0.2.0",
     "nock": "^12.0.2"
