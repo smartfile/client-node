@@ -147,10 +147,29 @@ describe('REST API client', () => {
       .reply(200, '{"size": 4, "name": "foobar", "path": "/foobar"}');
 
     client.upload('/foobar', rs, (e, json) => {
+      assertNoError(e);
       assert(json.name === 'foobar');
       assert(api.isDone());
       done();
     });
+  });
+
+  it('can pipe a stream to upload', (done) => {
+    // TODO: figure out why this is busted, works with a file!
+    const rs = new streams.ReadableStream('BODY');
+    rs.append(null);
+    // const rs = new fs.createReadStream('/tmp/foo.txt');
+
+    const api = server
+      .put('/api/2/path/data/')
+      .reply(200, '{"size": 4, "name": "foobar", "path": "/foobar"}');
+
+    rs.pipe(client.upload('/foobar', (e, json) => {
+      assertNoError(e);
+      assert(json.name === 'foobar');
+      assert(api.isDone());
+      done();
+    }));
   });
 
   it('can retrieve information about a path', (done) => {
