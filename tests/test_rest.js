@@ -157,10 +157,13 @@ describe('REST API client', () => {
   });
 
   it('can upload a stream', (done) => {
-    // TODO: figure out why this is busted, works with a file!
+    /* This test pipes a stream to upload.
+
+    By omitting a readableStream parameter, a writableStream is returned.
+    This results in a Transfer-Encoding: chunked streaming upload.
+    */
     const rs = new streams.ReadableStream('BODY');
     rs.append(null);
-    // const rs = new fs.createReadStream('/tmp/foo.txt');
 
     const api = server
       .put('/api/2/path/data/')
