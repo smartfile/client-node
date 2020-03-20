@@ -137,10 +137,12 @@ describe('REST API client', () => {
   });
 
   it('can upload a stream', (done) => {
-    // TODO: figure out why this is busted, works with a file!
+    /* This test passes a stream to upload()
+
+    This results in a regular multi-part POST.
+    */
     const rs = new streams.ReadableStream('BODY');
     rs.append(null);
-    // const rs = new fs.createReadStream('/tmp/foo.txt');
 
     const api = server
       .post('/api/2/path/data/')
