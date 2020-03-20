@@ -137,10 +137,12 @@ describe('REST API client', () => {
   });
 
   it('can upload a stream', (done) => {
-    // TODO: figure out why this is busted, works with a file!
+    /* This test passes a stream to upload()
+
+    This results in a regular multi-part POST.
+    */
     const rs = new streams.ReadableStream('BODY');
     rs.append(null);
-    // const rs = new fs.createReadStream('/tmp/foo.txt');
 
     const api = server
       .post('/api/2/path/data/')
@@ -154,11 +156,14 @@ describe('REST API client', () => {
     });
   });
 
-  it('can pipe a stream to upload', (done) => {
-    // TODO: figure out why this is busted, works with a file!
+  it('can upload a stream', (done) => {
+    /* This test pipes a stream to upload().
+
+    By omitting a readableStream parameter, a writableStream is returned.
+    This results in a Transfer-Encoding: chunked streaming upload.
+    */
     const rs = new streams.ReadableStream('BODY');
     rs.append(null);
-    // const rs = new fs.createReadStream('/tmp/foo.txt');
 
     const api = server
       .put('/api/2/path/data/')
