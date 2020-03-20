@@ -157,7 +157,7 @@ describe('REST API client', () => {
   });
 
   it('can upload a stream', (done) => {
-    /* This test pipes a stream to upload.
+    /* This test pipes a stream to upload().
 
     By omitting a readableStream parameter, a writableStream is returned.
     This results in a Transfer-Encoding: chunked streaming upload.
