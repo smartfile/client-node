@@ -65,6 +65,19 @@ describe('File System Abstraction', () => {
     });
   });
 
+  it('can readFile', (done) => {
+    const api = server
+      .get('/api/2/path/data/foobar')
+      .reply(200, 'BODY');
+
+    sffs.readFile('/foobar', (e, buffer) => {
+      assert(api.isDone());
+      assertNoError(e);
+      assert(buffer.toString() === 'BODY');
+      done();
+    });
+  });
+
   it('can open a file for writing', (done) => {
     const api = server
       .post('/api/2/path/data/')
@@ -90,6 +103,20 @@ describe('File System Abstraction', () => {
           done();
         });
       });
+    });
+  });
+
+  it('can writeFile', (done) => {
+    const api = server
+      .post('/api/2/path/data/')
+      .reply(200, '{ "name": "foobar" }');
+
+    const buff = Buffer.from('BODY');
+
+    sffs.writeFile('/foobar', buff, (e) => {
+      assert(api.isDone());
+      assertNoError(e);
+      done();
     });
   });
 
