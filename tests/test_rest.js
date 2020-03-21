@@ -60,7 +60,7 @@ describe('REST API client', () => {
     done();
   });
 
-  it('can authenticate', (done) =>  {
+  it('can authenticate', (done) => {
     const api = nock(API_URL)
       .get('/api/2/path/info/foobar')
       .basicAuth({
@@ -74,7 +74,7 @@ describe('REST API client', () => {
       password: 'password',
       baseUrl: API_URL,
     });
-  
+
     client.info('/foobar', (e) => {
       assertNoError(e);
       assert(api.isDone());
