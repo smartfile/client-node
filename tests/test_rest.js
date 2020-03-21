@@ -59,6 +59,51 @@ describe('REST API client', () => {
 
     done();
   });
+
+  it('can authenticate', (done) =>  {
+    const api = nock(API_URL)
+      .get('/api/2/path/info/foobar')
+      .basicAuth({
+        user: 'username',
+        pass: 'password',
+      })
+      .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
+
+    const client = new BasicClient({
+      username: 'username',
+      password: 'password',
+      baseUrl: API_URL,
+    });
+  
+    client.info('/foobar', (e) => {
+      assertNoError(e);
+      assert(api.isDone());
+      done();
+    });
+  });
+
+  it('sends a custom header', (done) => {
+    const client = new Client({
+      baseUrl: API_URL,
+      headers: {
+        'X-Custom-Header': 'foobar',
+      },
+    });
+
+    const api = nock(API_URL, {
+      reqheaders: {
+        'X-Custom-Header': 'foobar',
+      },
+    })
+      .get('/api/2/path/info/foobar')
+      .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
+
+    client.info('/foobar', (e) => {
+      assertNoError(e);
+      assert(api.isDone());
+      done();
+    });
+  });
 });
 
 describe('REST API client', () => {
