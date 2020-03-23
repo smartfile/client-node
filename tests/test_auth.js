@@ -11,7 +11,7 @@ logger.silent = true;
 
 
 describe('SmartFile Basic API client', () => {
-  it('can read config from env', (done) => {
+  it('can read config from env', () => {
     /*
     This test instantiates a client without any options.
 
@@ -32,8 +32,6 @@ describe('SmartFile Basic API client', () => {
 
     assert(client.baseUrl === API_URL);
     assert(client.options.auth === 'foobar:baz');
-
-    done();
   });
 
   it('can authenticate', (done) => {
@@ -58,7 +56,7 @@ describe('SmartFile Basic API client', () => {
     });
   });
 
-  it('accepts credentials in multiple forms', (done) => {
+  it('accepts credentials in multiple forms', () => {
     const credentials = [
       {
         username: 'username',
@@ -91,6 +89,5 @@ describe('SmartFile Basic API client', () => {
       client = new BasicClient(opts);
       assert(client.options.auth === 'username:password');
     });
-    done();
   });
 });
