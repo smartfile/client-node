@@ -173,9 +173,13 @@ describe('REST API client', () => {
       .get('/api/2/path/data/foobar')
       .reply(200, 'BODY');
 
-    client.download('/foobar', (e, r) => {
-      r.pipe(ws);
-      done();
+    client.download('/foobar', (e, res) => {
+      res
+        .pipe(ws)
+        .on('finish', () => {
+          assert(ws.toString() === 'BODY');
+          done();
+        });
     });
   });
 

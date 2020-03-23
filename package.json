@@ -4,8 +4,8 @@
   "description": "SmartFile API client for node.js.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --full-trace tests/test_rest.js",
-    "debug": "mocha inspect --full-trace tests/test_rest.js",
+    "test": "mocha --recursive --full-trace tests/**/test_*",
+    "debug": "mocha inspect --recursive --full-trace tests/**/test_*",
     "coverage": "nyc npm run test",
     "lint": "eslint --format node_modules/eslint-friendly-formatter ."
   },
