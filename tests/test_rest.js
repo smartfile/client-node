@@ -1,26 +1,14 @@
 const nock = require('nock');
 const assert = require('assert');
-const { morph } = require('mock-env');
 const streams = require('memory-streams');
+const { logger, Client } = require('../lib');
+const { normPath, encodePath } = require('../lib/rest/client');
+const { assertNoError } = require('./utils');
 
-const {
-  logger, Client, BasicClient,
-} = require('../lib');
-const {
-  normPath, encodePath,
-} = require('../lib/rest/client');
 
 const API_URL = 'http://fakeapi.foo/';
 
 logger.silent = true;
-
-
-function assertNoError(e) {
-  // Assertion to ensure that error is omitted inside a callback.
-  if (e) {
-    throw e;
-  }
-}
 
 
 describe('REST API client', () => {
@@ -32,54 +20,6 @@ describe('REST API client', () => {
     assert(encodePath('/foo#bar') === '/foo%23bar');
     assert(encodePath('/foo%23bar') === '/foo%2523bar');
     done();
-  });
-
-  it('can read config from env', (done) => {
-    /*
-    This test instantiates a client without any options.
-
-    It then ensures the client has picked up configuration options from the
-    environment. However, we use mock-env.morph to only temporarily set
-    "environment" variables for this test.
-    */
-
-    let client;
-
-    morph(() => {
-      client = new BasicClient();
-    }, {
-      SMARTFILE_URL: API_URL,
-      SMARTFILE_USER: 'foobar',
-      SMARTFILE_PASS: 'baz',
-    });
-
-    assert(client.options.baseUrl === API_URL);
-    assert(client.options.auth.user === 'foobar');
-    assert(client.options.auth.pass === 'baz');
-
-    done();
-  });
-
-  it('can authenticate', (done) => {
-    const api = nock(API_URL)
-      .get('/api/2/path/info/foobar')
-      .basicAuth({
-        user: 'username',
-        pass: 'password',
-      })
-      .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
-
-    const client = new BasicClient({
-      username: 'username',
-      password: 'password',
-      baseUrl: API_URL,
-    });
-
-    client.info('/foobar', (e) => {
-      assertNoError(e);
-      assert(api.isDone());
-      done();
-    });
   });
 
   it('sends a custom header', (done) => {
@@ -174,14 +114,17 @@ describe('REST API client', () => {
       .get('/api/2/path/data/foobar')
       .reply(200, 'BODY');
 
-    client.download('/foobar', () => {
-      assert(ws.toString() === 'BODY');
-      done();
-    })
-      .pipe(ws);
+    client.download('/foobar', (e, res) => {
+      res
+        .pipe(ws)
+        .on('finish', () => {
+          assert(ws.toString() === 'BODY');
+          done();
+        });
+    });
   });
 
-  it('can upload a stream', (done) => {
+  it('can upload a stream as multipart/form', (done) => {
     /* This test passes a stream to upload()
 
     This results in a regular multi-part POST.
@@ -201,7 +144,7 @@ describe('REST API client', () => {
     });
   });
 
-  it('can upload a stream', (done) => {
+  it('can upload a stream via pipe', (done) => {
     /* This test pipes a stream to upload().
 
     By omitting a readableStream parameter, a writableStream is returned.

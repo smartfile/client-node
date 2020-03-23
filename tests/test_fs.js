@@ -1,19 +1,12 @@
 const nock = require('nock');
 const assert = require('assert');
-
 const smartfile = require('../lib');
 const { CACHE_HIT } = require('../lib/fs/filesystem');
+const { assertNoError, assertError } = require('./utils');
 
 
 const API_URL = 'http://fakeapi.foo/';
 
-
-function assertNoError(e) {
-  // Assertion to ensure that error is omitted inside a callback.
-  if (e) {
-    throw e;
-  }
-}
 
 function assertMetric(metric, value) {
   // Asserts that a paritcular metric has the desired value.
@@ -220,5 +213,54 @@ describe('File System Abstraction', () => {
           break;
       }
     }, { incremental: true });
+  });
+
+  it('can open a write stream', (done) => {
+    const api = server
+      .put('/api/2/path/data/')
+      .reply(200, '{ "name": "foobar" }');
+
+    const s = sffs.createWriteStream('/foobar', (e, json) => {
+      assertNoError(e);
+      assert(json.name === 'foobar');
+      assert(api.isDone());
+      done();
+    });
+    s.write('BODY');
+    s.end();
+  });
+
+  it('reports errors correctly during upload', (done) => {
+    const api = server
+      .put('/api/2/path/data/')
+      .reply(500, 'Internal server error');
+
+    const s = sffs.createWriteStream('/foobar', (e) => {
+      assertError(e, 500);
+      assert(api.isDone());
+      done();
+    });
+    s.write('BODY');
+    s.end();
+  });
+
+  it('can open a read stream', (done) => {
+    const api = server
+      .get('/api/2/path/data/foobar')
+      .reply(200, 'BODY');
+
+    sffs.createReadStream('/foobar', (e, s) => {
+      let buffer = '';
+      assertNoError(e);
+      s
+        .on('data', (chunk) => {
+          buffer += chunk.toString();
+        })
+        .on('end', () => {
+          assert(buffer === 'BODY');
+          assert(api.isDone());
+          done();
+        });
+    });
   });
 });
