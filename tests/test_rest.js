@@ -48,14 +48,13 @@ describe('REST API client', () => {
     morph(() => {
       client = new BasicClient();
     }, {
-      SMARTFILE_URL: API_URL,
+      SMARTFILE_API_URL: API_URL,
       SMARTFILE_USER: 'foobar',
       SMARTFILE_PASS: 'baz',
     });
 
-    assert(client.options.baseUrl === API_URL);
-    assert(client.options.auth.user === 'foobar');
-    assert(client.options.auth.pass === 'baz');
+    assert(client.baseUrl === API_URL);
+    assert(client.options.auth === 'foobar:baz');
 
     done();
   });
@@ -174,14 +173,13 @@ describe('REST API client', () => {
       .get('/api/2/path/data/foobar')
       .reply(200, 'BODY');
 
-    client.download('/foobar', () => {
-      assert(ws.toString() === 'BODY');
+    client.download('/foobar', (e, r) => {
+      r.pipe(ws);
       done();
-    })
-      .pipe(ws);
+    });
   });
 
-  it('can upload a stream', (done) => {
+  it('can upload a stream as multipart/form', (done) => {
     /* This test passes a stream to upload()
 
     This results in a regular multi-part POST.
@@ -201,7 +199,7 @@ describe('REST API client', () => {
     });
   });
 
-  it('can upload a stream', (done) => {
+  it('can upload a stream via pipe', (done) => {
     /* This test pipes a stream to upload().
 
     By omitting a readableStream parameter, a writableStream is returned.
