@@ -1,19 +1,12 @@
 const nock = require('nock');
 const assert = require('assert');
-
 const smartfile = require('../lib');
 const { CACHE_HIT } = require('../lib/fs/filesystem');
+const { assertNoError } = require('./utils');
 
 
 const API_URL = 'http://fakeapi.foo/';
 
-
-function assertNoError(e) {
-  // Assertion to ensure that error is omitted inside a callback.
-  if (e) {
-    throw e;
-  }
-}
 
 function assertMetric(metric, value) {
   // Asserts that a paritcular metric has the desired value.
