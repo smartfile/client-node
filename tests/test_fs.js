@@ -214,4 +214,39 @@ describe('File System Abstraction', () => {
       }
     }, { incremental: true });
   });
+
+  it('can open a write stream', (done) => {
+    const api = server
+      .put('/api/2/path/data/')
+      .reply(200, '{ "name": "foobar" }');
+
+    const s = sffs.createWriteStream('/foobar', (e, json) => {
+      assertNoError(e);
+      assert(json.name === 'foobar');
+      assert(api.isDone());
+      done();
+    });
+    s.write('BODY');
+    s.end();
+  });
+
+  it('can open a read stream', (done) => {
+    const api = server
+      .get('/api/2/path/data/foobar')
+      .reply(200, 'BODY');
+
+    sffs.createReadStream('/foobar', (e, s) => {
+      let buffer = '';
+      assertNoError(e);
+      s
+        .on('data', (chunk) => {
+          buffer += chunk.toString();
+        })
+        .on('end', () => {
+          assert(buffer === 'BODY');
+          assert(api.isDone());
+          done();
+        });
+    });
+  });
 });
