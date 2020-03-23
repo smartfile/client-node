@@ -1,26 +1,14 @@
 const nock = require('nock');
 const assert = require('assert');
-const { morph } = require('mock-env');
 const streams = require('memory-streams');
+const { logger, Client } = require('../lib');
+const { normPath, encodePath } = require('../lib/rest/client');
+const { assertNoError } = require('./utils');
 
-const {
-  logger, Client, BasicClient,
-} = require('../lib');
-const {
-  normPath, encodePath,
-} = require('../lib/rest/client');
 
 const API_URL = 'http://fakeapi.foo/';
 
 logger.silent = true;
-
-
-function assertNoError(e) {
-  // Assertion to ensure that error is omitted inside a callback.
-  if (e) {
-    throw e;
-  }
-}
 
 
 describe('REST API client', () => {
@@ -32,53 +20,6 @@ describe('REST API client', () => {
     assert(encodePath('/foo#bar') === '/foo%23bar');
     assert(encodePath('/foo%23bar') === '/foo%2523bar');
     done();
-  });
-
-  it('can read config from env', (done) => {
-    /*
-    This test instantiates a client without any options.
-
-    It then ensures the client has picked up configuration options from the
-    environment. However, we use mock-env.morph to only temporarily set
-    "environment" variables for this test.
-    */
-
-    let client;
-
-    morph(() => {
-      client = new BasicClient();
-    }, {
-      SMARTFILE_API_URL: API_URL,
-      SMARTFILE_USER: 'foobar',
-      SMARTFILE_PASS: 'baz',
-    });
-
-    assert(client.baseUrl === API_URL);
-    assert(client.options.auth === 'foobar:baz');
-
-    done();
-  });
-
-  it('can authenticate', (done) => {
-    const api = nock(API_URL)
-      .get('/api/2/path/info/foobar')
-      .basicAuth({
-        user: 'username',
-        pass: 'password',
-      })
-      .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
-
-    const client = new BasicClient({
-      username: 'username',
-      password: 'password',
-      baseUrl: API_URL,
-    });
-
-    client.info('/foobar', (e) => {
-      assertNoError(e);
-      assert(api.isDone());
-      done();
-    });
   });
 
   it('sends a custom header', (done) => {
