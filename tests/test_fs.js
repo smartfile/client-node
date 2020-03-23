@@ -2,7 +2,7 @@ const nock = require('nock');
 const assert = require('assert');
 const smartfile = require('../lib');
 const { CACHE_HIT } = require('../lib/fs/filesystem');
-const { assertNoError } = require('./utils');
+const { assertNoError, assertError } = require('./utils');
 
 
 const API_URL = 'http://fakeapi.foo/';
@@ -223,6 +223,20 @@ describe('File System Abstraction', () => {
     const s = sffs.createWriteStream('/foobar', (e, json) => {
       assertNoError(e);
       assert(json.name === 'foobar');
+      assert(api.isDone());
+      done();
+    });
+    s.write('BODY');
+    s.end();
+  });
+
+  it('reports errors correctly during upload', (done) => {
+    const api = server
+      .put('/api/2/path/data/')
+      .reply(500, 'Internal server error');
+
+    const s = sffs.createWriteStream('/foobar', (e) => {
+      assertError(e, 500);
       assert(api.isDone());
       done();
     });
