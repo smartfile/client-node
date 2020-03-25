@@ -165,6 +165,31 @@ describe('REST API client', () => {
     }));
   });
 
+  it('can upload non-ascii filename via pipe', (done) => {
+    /* This test pipes a stream to upload().
+
+    Streaming uploads include a header: X-File-Name as a hint to
+    the API for the file name. Because of implementation details of
+    the API, we cannot simply put the file name into the URL. Another
+    option would be to use the querystring. In any case, the filename
+    header is invalid if it contains non-ascii chars, so we must
+    encode it.
+    */
+    const rs = new streams.ReadableStream('BODY');
+    rs.append(null);
+
+    const api = server
+      .put('/api/2/path/data/')
+      .reply(200, '{"size": 4, "name": "foobar", "path": "/foobar"}');
+
+    rs.pipe(client.upload('/f©®βàr¡', (e, json) => {
+      assertNoError(e);
+      assert(json.name === 'foobar');
+      assert(api.isDone());
+      done();
+    }));
+  });
+
   it('can retrieve information about a path', (done) => {
     const api = server
       .get('/api/2/path/info/foobar')
