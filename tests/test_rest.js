@@ -193,11 +193,24 @@ describe('REST API client', () => {
   it('can retrieve information about a path', (done) => {
     const api = server
       .get('/api/2/path/info/foobar')
-      .reply(200, '{ "name": "foo" }');
+      .reply(200, '{ "name": "foobar" }');
 
     client.info('/foobar', (e, json) => {
       assertNoError(e);
-      assert(json.name === 'foo');
+      assert(json.name === 'foobar');
+      assert(api.isDone());
+      done();
+    });
+  });
+
+  it('can retrieve information about a non-ascii path', (done) => {
+    const api = server
+      .get('/api/2/path/info/f%C2%A9%C2%AE%CE%B2%C3%A0r%C2%A1')
+      .reply(200, '{ "name": "f©®βàr¡" }');
+
+    client.info('/f©®βàr¡', (e, json) => {
+      assertNoError(e);
+      assert(json.name === 'f©®βàr¡');
       assert(api.isDone());
       done();
     });
