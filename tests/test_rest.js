@@ -180,11 +180,11 @@ describe('REST API client', () => {
 
     const api = server
       .put('/api/2/path/data/')
-      .reply(200, '{"size": 4, "name": "foobar", "path": "/foobar"}');
+      .reply(200, '{"size": 4, "name": "f©®βàr¡", "path": "/foobar"}');
 
     rs.pipe(client.upload('/f©®βàr¡', (e, json) => {
       assertNoError(e);
-      assert(json.name === 'foobar');
+      assert(json.name === 'f©®βàr¡');
       assert(api.isDone());
       done();
     }));
