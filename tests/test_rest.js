@@ -165,14 +165,52 @@ describe('REST API client', () => {
     }));
   });
 
+  it('can upload non-ascii filename via pipe', (done) => {
+    /* This test pipes a stream to upload().
+
+    Streaming uploads include a header: X-File-Name as a hint to
+    the API for the file name. Because of implementation details of
+    the API, we cannot simply put the file name into the URL. Another
+    option would be to use the querystring. In any case, the filename
+    header is invalid if it contains non-ascii chars, so we must
+    encode it.
+    */
+    const rs = new streams.ReadableStream('BODY');
+    rs.append(null);
+
+    const api = server
+      .put('/api/2/path/data/')
+      .reply(200, '{"size": 4, "name": "f©®βàr¡", "path": "/foobar"}');
+
+    rs.pipe(client.upload('/f©®βàr¡', (e, json) => {
+      assertNoError(e);
+      assert(json.name === 'f©®βàr¡');
+      assert(api.isDone());
+      done();
+    }));
+  });
+
   it('can retrieve information about a path', (done) => {
     const api = server
       .get('/api/2/path/info/foobar')
-      .reply(200, '{ "name": "foo" }');
+      .reply(200, '{ "name": "foobar" }');
 
     client.info('/foobar', (e, json) => {
       assertNoError(e);
-      assert(json.name === 'foo');
+      assert(json.name === 'foobar');
+      assert(api.isDone());
+      done();
+    });
+  });
+
+  it('can retrieve information about a non-ascii path', (done) => {
+    const api = server
+      .get('/api/2/path/info/f%C2%A9%C2%AE%CE%B2%C3%A0r%C2%A1')
+      .reply(200, '{ "name": "f©®βàr¡" }');
+
+    client.info('/f©®βàr¡', (e, json) => {
+      assertNoError(e);
+      assert(json.name === 'f©®βàr¡');
       assert(api.isDone());
       done();
     });
