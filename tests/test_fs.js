@@ -36,6 +36,13 @@ describe('File System Abstraction', () => {
     done();
   });
 
+  afterEach('', (done) => {
+    nock.cleanAll();
+    // eslint-disable-next-line no-underscore-dangle
+    sffs._maybeClearCache(0);
+    done();
+  });
+
   it('can open a file for reading', (done) => {
     const api = server
       .get('/api/2/path/data/foobar')
@@ -74,7 +81,7 @@ describe('File System Abstraction', () => {
   it('can open a file for writing', (done) => {
     const api = server
       .post('/api/2/path/data/')
-      .reply(200, '{ "name": "foobar" }');
+      .reply(200, '{ "name": "foobar", "path": "/foobar" }');
 
     sffs.open('/foobar', 'w', null, (openError, fd) => {
       if (openError) {
@@ -91,6 +98,7 @@ describe('File System Abstraction', () => {
         }
 
         sffs.close(fd, (closeError) => {
+          assert(sffs.statCache['/foobar']);
           assertNoError(closeError);
           assert(api.isDone());
           done();
@@ -102,11 +110,12 @@ describe('File System Abstraction', () => {
   it('can writeFile', (done) => {
     const api = server
       .post('/api/2/path/data/')
-      .reply(200, '{ "name": "foobar" }');
+      .reply(200, '{ "name": "foobar", "path": "/foobar" }');
 
     const buff = Buffer.from('BODY');
 
     sffs.writeFile('/foobar', buff, (e) => {
+      assert(sffs.statCache['/foobar']);
       assert(api.isDone());
       assertNoError(e);
       done();
@@ -119,6 +128,7 @@ describe('File System Abstraction', () => {
       .reply(404, 'NOT FOUND');
 
     sffs.rmdir('/foobar', (e, json) => {
+      assert(!sffs.statCache['/foobar']);
       assertNoError(e);
       assert(json.result.status === 'SUCCESS');
       assert(api.isDone());
@@ -143,9 +153,12 @@ describe('File System Abstraction', () => {
     const api = server
       .get('/api/2/path/info/foobar')
       .query({ children: 'true', limit: 1024 })
-      .reply(200, '{ "children": [{"name": "foo", "path": "/foobar/foo", "size": 10 }, {"name": "bar", "path": "/foobar/bar", "size": 10}]}');
+      .reply(200, '{ "name": "foobar", "path": "/foobar", "children": [{"name": "foo", "path": "/foobar/foo", "size": 10 }, {"name": "bar", "path": "/foobar/bar", "size": 10}]}');
 
     sffs.readdir('/foobar', (e, json) => {
+      assert(sffs.statCache['/foobar']);
+      assert(sffs.statCache['/foobar/foo']);
+      assert(sffs.statCache['/foobar/bar']);
       assertNoError(e);
       assert(json.sort().toString() === ['bar', 'foo'].sort().toString());
       assert(api.isDone());
@@ -174,28 +187,34 @@ describe('File System Abstraction', () => {
     });
   });
 
-  it('can readdirstats() -- incrementally', (done) => {
+  it('can readdirstats() incrementally', (done) => {
     const api0 = server
       .get('/api/2/path/info/foobar')
       .query({ children: 'true', limit: 1024 })
-      .reply(200, '{ "page": 1, "pages": 2, "children": [{"name": "foo", "path": "/foobar/foo", "size": 10 }, {"name": "bar", "path": "/foobar/bar", "size": 10}]}');
+      .reply(200, '{ "page": 1, "pages": 2, "name": "foobar", "path": "/foobar", "children": [{"name": "foo", "path": "/foobar/foo", "size": 10 }, {"name": "bar", "path": "/foobar/bar", "size": 10}]}');
 
     const api1 = server
       .get('/api/2/path/info/foobar')
       .query({ children: 'true', limit: 1024, page: 2 })
-      .reply(200, '{ "page": 2, "pages": 2, "children": [{"name": "baz", "path": "/foobar/baz", "size": 10 }, {"name": "quux", "path": "/foobar/quux", "size": 10}]}');
+      .reply(200, '{ "page": 2, "pages": 2, "name": "foobar", "path": "/foobar", "children": [{"name": "baz", "path": "/foobar/baz", "size": 10 }, {"name": "quux", "path": "/foobar/quux", "size": 10}]}');
 
     let calls = 0;
     sffs.readdirstats('/foobar', (e, json) => {
       switch (calls += 1) {
         case 1:
           assertNoError(e);
+          assert(sffs.statCache['/foobar']);
+          assert(sffs.statCache['/foobar/foo']);
+          assert(sffs.statCache['/foobar/bar']);
           assert(json[0].name === 'foo');
           assert(json[1].name === 'bar');
           break;
 
         case 2:
           assertNoError(e);
+          assert(sffs.statCache['/foobar']);
+          assert(sffs.statCache['/foobar/baz']);
+          assert(sffs.statCache['/foobar/quux']);
           assert(json[0].name === 'baz');
           assert(json[1].name === 'quux');
           assert(api0.isDone());
@@ -218,9 +237,10 @@ describe('File System Abstraction', () => {
   it('can open a write stream', (done) => {
     const api = server
       .put('/api/2/path/data/')
-      .reply(200, '{ "name": "foobar" }');
+      .reply(200, '{ "name": "foobar", "path": "/foobar" }');
 
     const s = sffs.createWriteStream('/foobar', (e, json) => {
+      assert(sffs.statCache['/foobar']);
       assertNoError(e);
       assert(json.name === 'foobar');
       assert(api.isDone());

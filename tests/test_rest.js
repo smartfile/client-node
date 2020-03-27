@@ -57,11 +57,10 @@ describe('REST API client', () => {
     done();
   });
 
-  /*
-  afterEach('', function(done) {
+  afterEach('', (done) => {
+    nock.cleanAll();
     done();
   });
-  */
 
   it('can ping api', (done) => {
     /*
