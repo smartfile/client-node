@@ -39,7 +39,7 @@ describe('File System Abstraction', () => {
   afterEach('', (done) => {
     nock.cleanAll();
     // eslint-disable-next-line no-underscore-dangle
-    sffs._maybeClearCache(0);
+    sffs._clearCache(0, 1, 2);
     done();
   });
 
@@ -98,7 +98,7 @@ describe('File System Abstraction', () => {
         }
 
         sffs.close(fd, (closeError) => {
-          assert(sffs.statCache['/foobar']);
+          assert(!sffs.statCache['/foobar']);
           assertNoError(closeError);
           assert(api.isDone());
           done();
@@ -115,7 +115,7 @@ describe('File System Abstraction', () => {
     const buff = Buffer.from('BODY');
 
     sffs.writeFile('/foobar', buff, (e) => {
-      assert(sffs.statCache['/foobar']);
+      assert(!sffs.statCache['/foobar']);
       assert(api.isDone());
       assertNoError(e);
       done();
@@ -240,7 +240,7 @@ describe('File System Abstraction', () => {
       .reply(200, '{ "name": "foobar", "path": "/foobar" }');
 
     const s = sffs.createWriteStream('/foobar', (e, json) => {
-      assert(sffs.statCache['/foobar']);
+      assert(!sffs.statCache['/foobar']);
       assertNoError(e);
       assert(json.name === 'foobar');
       assert(api.isDone());
