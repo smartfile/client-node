@@ -300,6 +300,20 @@ describe('REST API client', () => {
     });
   });
 
+  it('can create a non-ascii named directory', (done) => {
+    const api = server
+      .post('/api/2/path/oper/mkdir/', { path: '/f©®βàr¡' })
+      .reply(200, '{ "name": "f©®βàr¡", "isdir": true, "isfile": false }');
+
+    client.mkdir('/f©®βàr¡', (e, json) => {
+      assertNoError(e);
+      assert(json.name === 'f©®βàr¡');
+      assert(json.isdir === true);
+      assert(api.isDone());
+      done();
+    });
+  });
+
   it('can delete a file or directory', (done) => {
     const api0 = server
       .post('/api/2/path/oper/remove/', { path: '/foobar' })
