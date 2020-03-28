@@ -6,9 +6,9 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 
 const rest = new BasicClient({
-    baseUrl: 'https://test.dev.smartfile.com/',
-    username: 'administrator',
-    password: 'password',
+  baseUrl: 'https://app.smartfile.com/',
+  username: 'username',
+  password: 'password',
 });
 const sffs = new FileSystem(rest);
 
