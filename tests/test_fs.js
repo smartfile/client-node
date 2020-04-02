@@ -287,8 +287,8 @@ describe('File System Abstraction', () => {
   it('can open a read stream at an offset', (done) => {
     const api = nock(API_URL, {
       reqheaders: {
-        Range: 'bytes=100-'
-      }
+        Range: 'bytes=100-',
+      },
     })
       .get('/api/2/path/data/foobar')
       .reply(200, 'BODY');
