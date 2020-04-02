@@ -242,7 +242,7 @@ describe('REST API client', () => {
           assert.fail('too many callbacks');
           break;
       }
-    }, { children: true });
+    }, { qs: { children: 'true', limit: 1024 } });
   });
 
   it('can retrieve a multi-page directory listing', (done) => {
@@ -283,7 +283,7 @@ describe('REST API client', () => {
           assert.fail('too many callbacks');
           break;
       }
-    }, { children: true });
+    }, { qs: { children: 'true', limit: 1024 } });
   });
 
   it('can create a directory', (done) => {
@@ -427,5 +427,27 @@ describe('REST API client', () => {
       assert(api.isDone());
       done();
     });
+  });
+
+  it('can send per-request HTTP headers', (done) => {
+    /*
+    This test calls the whoami API endpoint.
+
+    The test confirms that a header can be provided for the request.
+    */
+    const api = nock(API_URL, {
+      reqheaders: {
+        'X-Something': 'foobar',
+      },
+    })
+      .get('/api/2/whoami/')
+      .reply(200, '{ "username": "user" }');
+
+    client.whoami((e, json) => {
+      assertNoError(e);
+      assert(json.username === 'user');
+      assert(api.isDone());
+      done();
+    }, { headers: { 'X-Something': 'foobar' } });
   });
 });
