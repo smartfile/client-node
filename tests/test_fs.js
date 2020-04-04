@@ -235,11 +235,36 @@ describe('File System Abstraction', () => {
   });
 
   it('can open a write stream', (done) => {
-    const api = server
+    const api = nock(API_URL, {
+      reqheaders: {
+        'X-File-Name': 'foobar',
+      },
+    })
       .put('/api/2/path/data/')
       .reply(200, '{ "name": "foobar", "path": "/foobar" }');
 
     const s = sffs.createWriteStream('/foobar', (e, json) => {
+      assert(!sffs.statCache['/foobar']);
+      assertNoError(e);
+      assert(json.name === 'foobar');
+      assert(api.isDone());
+      done();
+    });
+    s.write('BODY');
+    s.end();
+  });
+
+  it('can open a write stream at an offset', (done) => {
+    const api = nock(API_URL, {
+      reqheaders: {
+        'X-File-Name': 'foobar',
+        Range: 'bytes=100-',
+      },
+    })
+      .patch('/api/2/path/data/')
+      .reply(200, '{ "name": "foobar", "path": "/foobar" }');
+
+    const s = sffs.createWriteStream('/foobar', { offset: 100 }, (e, json) => {
       assert(!sffs.statCache['/foobar']);
       assertNoError(e);
       assert(json.name === 'foobar');
