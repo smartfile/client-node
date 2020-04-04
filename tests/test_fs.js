@@ -1,3 +1,4 @@
+const moment = require('moment');
 const nock = require('nock');
 const assert = require('assert');
 const smartfile = require('../lib');
@@ -255,16 +256,18 @@ describe('File System Abstraction', () => {
   });
 
   it('can open a write stream at an offset', (done) => {
+    const ts = moment();
     const api = nock(API_URL, {
       reqheaders: {
         'X-File-Name': 'foobar',
         Range: 'bytes=100-',
+        'If-Unmodified-since': ts.format('ddd, d M YYYY HH:mm:ss GMT'),
       },
     })
       .patch('/api/2/path/data/')
       .reply(200, '{ "name": "foobar", "path": "/foobar" }');
 
-    const s = sffs.createWriteStream('/foobar', { offset: 100 }, (e, json) => {
+    const s = sffs.createWriteStream('/foobar', { offset: 100, timestamp: ts.unix() }, (e, json) => {
       assert(!sffs.statCache['/foobar']);
       assertNoError(e);
       assert(json.name === 'foobar');
