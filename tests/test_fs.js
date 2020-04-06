@@ -236,12 +236,8 @@ describe('File System Abstraction', () => {
   });
 
   it('can open a write stream', (done) => {
-    const api = nock(API_URL, {
-      reqheaders: {
-        'X-File-Name': 'foobar',
-      },
-    })
-      .put('/api/2/path/data/')
+    const api = server
+      .put('/api/3/path/data/foobar')
       .reply(200, '{ "name": "foobar", "path": "/foobar" }');
 
     const s = sffs.createWriteStream('/foobar', (e, json) => {
@@ -259,12 +255,11 @@ describe('File System Abstraction', () => {
     const ts = moment();
     const api = nock(API_URL, {
       reqheaders: {
-        'X-File-Name': 'foobar',
         Range: 'bytes=100-',
         'If-Unmodified-since': ts.format('ddd, d M YYYY HH:mm:ss GMT'),
       },
     })
-      .patch('/api/2/path/data/')
+      .patch('/api/3/path/data/foobar')
       .reply(200, '{ "name": "foobar", "path": "/foobar" }');
 
     const s = sffs.createWriteStream('/foobar', { offset: 100, timestamp: ts.unix() }, (e, json) => {
@@ -280,7 +275,7 @@ describe('File System Abstraction', () => {
 
   it('reports errors correctly during upload', (done) => {
     const api = server
-      .put('/api/2/path/data/')
+      .put('/api/3/path/data/foobar')
       .reply(500, 'Internal server error');
 
     const s = sffs.createWriteStream('/foobar', (e) => {

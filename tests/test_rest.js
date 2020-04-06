@@ -153,7 +153,7 @@ describe('REST API client', () => {
     rs.append(null);
 
     const api = server
-      .put('/api/2/path/data/')
+      .put('/api/3/path/data/foobar')
       .reply(200, '{"size": 4, "name": "foobar", "path": "/foobar"}');
 
     rs.pipe(client.upload('/foobar', (e, json) => {
@@ -178,7 +178,7 @@ describe('REST API client', () => {
     rs.append(null);
 
     const api = server
-      .put('/api/2/path/data/')
+      .put('/api/3/path/data/f%C2%A9%C2%AE%CE%B2%C3%A0r%C2%A1')
       .reply(200, '{"size": 4, "name": "f©®βàr¡", "path": "/foobar"}');
 
     rs.pipe(client.upload('/f©®βàr¡', (e, json) => {
