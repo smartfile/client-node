@@ -139,7 +139,7 @@ describe('File System Abstraction', () => {
 
   it('can delete a missing file', (done) => {
     const api = server
-      .post('/api/2/path/oper/remove/', { path: '/foobar' })
+      .delete('/api/3/path/data/foobar')
       .reply(404, 'NOT FOUND');
 
     sffs.unlink('/foobar', (e, json) => {

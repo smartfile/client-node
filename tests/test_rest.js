@@ -337,6 +337,18 @@ describe('REST API client', () => {
     });
   });
 
+  it('can delete a file', (done) => {
+    const api0 = server
+      .delete('/api/3/path/data/foobar')
+      .reply(204);
+
+    client.deleteFile('/foobar', (e) => {
+      assertNoError(e);
+      assert(api0.isDone());
+      done();
+    });
+  });
+
   it('can copy a file or directory', (done) => {
     const api0 = server
       .post('/api/2/path/oper/copy/', { src: '/foobar', dst: '/baz' })
@@ -403,12 +415,13 @@ describe('REST API client', () => {
   it('can handle API throttling', (done) => {
     const api0 = server
       .get('/api/2/path/info/foobar')
-      .reply(429, 'THROTTLED', { 'X-Throttle': '400; next=0.1 sec' });
+      .reply(429, 'THROTTLED', { 'Retry-After': '0.1' });
 
     const api1 = server
       .get('/api/2/path/info/foobar')
       .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
 
+    debugger;
     client.info('/foobar', (e) => {
       assertNoError(e);
       assert(api0.isDone());
