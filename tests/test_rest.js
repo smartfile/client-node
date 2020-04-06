@@ -421,7 +421,6 @@ describe('REST API client', () => {
       .get('/api/2/path/info/foobar')
       .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
 
-    debugger;
     client.info('/foobar', (e) => {
       assertNoError(e);
       assert(api0.isDone());
