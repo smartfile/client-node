@@ -81,13 +81,13 @@ describe('SSH Key Management', () => {
 
   it('can update a key', (done) => {
     const api0 = server
-      .post('/api/3/sshkeys/foobar/foo/', KEY0)
-      .reply(200, JSON.stringify(KEY0));
+      .post('/api/3/sshkeys/foobar/foo/', KEY1)
+      .reply(200, JSON.stringify(KEY1));
 
-    keys.update(KEY0, (e, json) => {
+    keys.update('foo', KEY1, (e, json) => {
       assertNoError(e);
       assert(api0.isDone());
-      assert(json.name === KEY0.name);
+      assert(json.name === KEY1.name);
       done();
     });
   });
