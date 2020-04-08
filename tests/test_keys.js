@@ -45,10 +45,23 @@ describe('SSH Key Management', () => {
       .get('/api/3/sshkeys/foobar/')
       .reply(200, JSON.stringify(KEYS));
 
-    keys.get((e, json) => {
+    keys.list((e, json) => {
       assertNoError(e);
       assert(api0.isDone());
       assert(json.length === 2);
+      done();
+    });
+  });
+
+  it('can get a key', (done) => {
+    const api0 = server
+      .get('/api/3/sshkeys/foobar/foo/')
+      .reply(200, JSON.stringify(KEY0));
+
+    keys.get(KEY0.name, (e, json) => {
+      assertNoError(e);
+      assert(api0.isDone());
+      assert(json.name === KEY0.name);
       done();
     });
   });
