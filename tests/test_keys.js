@@ -1,8 +1,7 @@
 const nock = require('nock');
 const assert = require('assert');
-const { Keys } = require('../lib/keys');
 const { assertNoError } = require('./utils');
-const { logger, Client } = require('../lib');
+const { logger, Client, Keys } = require('../lib');
 
 
 const API_URL = 'http://fakeapi.foo/';
