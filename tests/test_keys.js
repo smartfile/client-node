@@ -80,7 +80,7 @@ describe('SSH Key Management', () => {
 
   it('can update a key', (done) => {
     const api0 = server
-      .post('/api/3/sshkeys/foobar/foo/', KEY1)
+      .patch('/api/3/sshkeys/foobar/foo/', KEY1)
       .reply(200, JSON.stringify(KEY1));
 
     keys.update('foo', KEY1, (e, json) => {
