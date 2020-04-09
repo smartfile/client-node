@@ -153,7 +153,7 @@ describe('REST API client', () => {
     rs.append(null);
 
     const api = server
-      .put('/api/2/path/data/')
+      .put('/api/3/path/data/foobar')
       .reply(200, '{"size": 4, "name": "foobar", "path": "/foobar"}');
 
     rs.pipe(client.upload('/foobar', (e, json) => {
@@ -178,7 +178,7 @@ describe('REST API client', () => {
     rs.append(null);
 
     const api = server
-      .put('/api/2/path/data/')
+      .put('/api/3/path/data/f%C2%A9%C2%AE%CE%B2%C3%A0r%C2%A1')
       .reply(200, '{"size": 4, "name": "f©®βàr¡", "path": "/foobar"}');
 
     rs.pipe(client.upload('/f©®βàr¡', (e, json) => {
@@ -337,6 +337,18 @@ describe('REST API client', () => {
     });
   });
 
+  it('can delete a file', (done) => {
+    const api0 = server
+      .delete('/api/3/path/data/foobar')
+      .reply(204);
+
+    client.deleteFile('/foobar', (e) => {
+      assertNoError(e);
+      assert(api0.isDone());
+      done();
+    });
+  });
+
   it('can copy a file or directory', (done) => {
     const api0 = server
       .post('/api/2/path/oper/copy/', { src: '/foobar', dst: '/baz' })
@@ -403,7 +415,7 @@ describe('REST API client', () => {
   it('can handle API throttling', (done) => {
     const api0 = server
       .get('/api/2/path/info/foobar')
-      .reply(429, 'THROTTLED', { 'X-Throttle': '400; next=0.1 sec' });
+      .reply(429, 'THROTTLED', { 'Retry-After': '0.1' });
 
     const api1 = server
       .get('/api/2/path/info/foobar')

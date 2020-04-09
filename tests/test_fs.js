@@ -1,3 +1,4 @@
+const moment = require('moment');
 const nock = require('nock');
 const assert = require('assert');
 const smartfile = require('../lib');
@@ -138,7 +139,7 @@ describe('File System Abstraction', () => {
 
   it('can delete a missing file', (done) => {
     const api = server
-      .post('/api/2/path/oper/remove/', { path: '/foobar' })
+      .delete('/api/3/path/data/foobar')
       .reply(404, 'NOT FOUND');
 
     sffs.unlink('/foobar', (e, json) => {
@@ -236,7 +237,7 @@ describe('File System Abstraction', () => {
 
   it('can open a write stream', (done) => {
     const api = server
-      .put('/api/2/path/data/')
+      .put('/api/3/path/data/foobar')
       .reply(200, '{ "name": "foobar", "path": "/foobar" }');
 
     const s = sffs.createWriteStream('/foobar', (e, json) => {
@@ -250,9 +251,31 @@ describe('File System Abstraction', () => {
     s.end();
   });
 
+  it('can open a write stream at an offset', (done) => {
+    const ts = moment();
+    const api = nock(API_URL, {
+      reqheaders: {
+        Range: 'bytes=100-',
+        'If-Unmodified-since': ts.format('ddd, d M YYYY HH:mm:ss GMT'),
+      },
+    })
+      .patch('/api/3/path/data/foobar')
+      .reply(200, '{ "name": "foobar", "path": "/foobar" }');
+
+    const s = sffs.createWriteStream('/foobar', { offset: 100, timestamp: ts.unix() }, (e, json) => {
+      assert(!sffs.statCache['/foobar']);
+      assertNoError(e);
+      assert(json.name === 'foobar');
+      assert(api.isDone());
+      done();
+    });
+    s.write('BODY');
+    s.end();
+  });
+
   it('reports errors correctly during upload', (done) => {
     const api = server
-      .put('/api/2/path/data/')
+      .put('/api/3/path/data/foobar')
       .reply(500, 'Internal server error');
 
     const s = sffs.createWriteStream('/foobar', (e) => {

@@ -32,3 +32,11 @@ version:
 clean:
 	rm -rf node_modules
 
+# Aliases
+
+.PHONY: debugtest
+debugtest: debug
+
+.PHONY: testdebug
+testdebug: debug
+
