@@ -251,6 +251,22 @@ describe('File System Abstraction', () => {
     s.end();
   });
 
+  it('can open a write stream with null options', (done) => {
+    const api = server
+      .put('/api/3/path/data/foobar')
+      .reply(200, '{ "name": "foobar", "path": "/foobar" }');
+
+    const s = sffs.createWriteStream('/foobar', null, (e, json) => {
+      assert(!sffs.statCache['/foobar']);
+      assertNoError(e);
+      assert(json.name === 'foobar');
+      assert(api.isDone());
+      done();
+    });
+    s.write('BODY');
+    s.end();
+  });
+
   it('can open a write stream at an offset', (done) => {
     const ts = moment();
     const api = nock(API_URL, {
@@ -293,6 +309,26 @@ describe('File System Abstraction', () => {
       .reply(200, 'BODY');
 
     sffs.createReadStream('/foobar', (e, s) => {
+      let buffer = '';
+      assertNoError(e);
+      s
+        .on('data', (chunk) => {
+          buffer += chunk.toString();
+        })
+        .on('end', () => {
+          assert(buffer === 'BODY');
+          assert(api.isDone());
+          done();
+        });
+    });
+  });
+
+  it('can open a read stream with null options', (done) => {
+    const api = server
+      .get('/api/2/path/data/foobar')
+      .reply(200, 'BODY');
+
+    sffs.createReadStream('/foobar', null, (e, s) => {
       let buffer = '';
       assertNoError(e);
       s
