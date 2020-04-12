@@ -65,12 +65,12 @@ describe('SSH Key Management', () => {
     });
   });
 
-  it('can add a key', (done) => {
+  it('can save a key', (done) => {
     const api0 = server
-      .post('/api/3/sshkeys/foobar/', KEY0)
+      .put('/api/3/sshkeys/foobar/foo', KEY0)
       .reply(200, JSON.stringify(KEY0));
 
-    keys.add(KEY0, (e, json) => {
+    keys.save(KEY0, (e, json) => {
       assertNoError(e);
       assert(api0.isDone());
       assert(json.name === KEY0.name);
