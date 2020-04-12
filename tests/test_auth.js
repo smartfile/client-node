@@ -56,6 +56,28 @@ describe('SmartFile Basic API client', () => {
     });
   });
 
+  it('can handle authentication failure', (done) => {
+    const api = nock(API_URL)
+      .get('/api/2/path/info/foobar')
+      .basicAuth({
+        user: 'username',
+        pass: 'password',
+      })
+      .reply(401);
+
+    const client = new BasicClient({
+      username: 'username',
+      password: 'password',
+      baseUrl: API_URL,
+    });
+
+    client.info('/foobar', (e) => {
+      assert(e);
+      assert(api.isDone());
+      done();
+    });
+  });
+
   it('accepts credentials in multiple forms', () => {
     const credentials = [
       {
