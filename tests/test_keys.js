@@ -54,7 +54,7 @@ describe('SSH Key Management', () => {
 
   it('can get a key', (done) => {
     const api0 = server
-      .get('/api/3/sshkeys/foobar/foo/')
+      .get('/api/3/sshkeys/foobar/foo')
       .reply(200, JSON.stringify(KEY0));
 
     keys.get(KEY0.name, (e, json) => {
@@ -65,12 +65,12 @@ describe('SSH Key Management', () => {
     });
   });
 
-  it('can add a key', (done) => {
+  it('can save a key', (done) => {
     const api0 = server
-      .post('/api/3/sshkeys/foobar/', KEY0)
+      .put('/api/3/sshkeys/foobar/foo', KEY0)
       .reply(200, JSON.stringify(KEY0));
 
-    keys.add(KEY0, (e, json) => {
+    keys.save(KEY0, (e, json) => {
       assertNoError(e);
       assert(api0.isDone());
       assert(json.name === KEY0.name);
@@ -80,7 +80,7 @@ describe('SSH Key Management', () => {
 
   it('can update a key', (done) => {
     const api0 = server
-      .patch('/api/3/sshkeys/foobar/foo/', KEY1)
+      .patch('/api/3/sshkeys/foobar/foo', KEY1)
       .reply(200, JSON.stringify(KEY1));
 
     keys.update('foo', KEY1, (e, json) => {
@@ -93,7 +93,7 @@ describe('SSH Key Management', () => {
 
   it('can delete a key', (done) => {
     const api0 = server
-      .delete('/api/3/sshkeys/foobar/foo/')
+      .delete('/api/3/sshkeys/foobar/foo')
       .reply(204);
 
     keys.delete('foo', (e) => {
