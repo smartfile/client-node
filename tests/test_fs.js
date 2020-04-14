@@ -366,4 +366,30 @@ describe('File System Abstraction', () => {
         });
     });
   });
+
+  it('can cache a missing item', (done) => {
+    let count = 0;
+    nock(API_URL)
+      .get('/api/2/path/info/foobar')
+      .reply(() => {
+        count += 1;
+        return [404, 'File not found'];
+      })
+      .persist();
+
+    sffs.cacheLevel = 2;
+
+    sffs.stat('/foobar', (e0, json0) => {
+      assert(e0.statusCode === 404);
+      assert(json0 === undefined);
+      assert(count === 1);
+
+      sffs.stat('/foobar', (e1, json1) => {
+        assert(e1.statusCode === 404);
+        assert(json1 === undefined);
+        assert(count === 1);
+        done();
+      });
+    });
+  });
 });
