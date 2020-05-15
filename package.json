@@ -33,6 +33,7 @@
     "form-data": "^3.0.0",
     "memory-streams": "^0.1.3",
     "moment": "^2.24.0",
+    "moment-timezone": "^0.5.28",
     "prom-client": "^12.0.0",
     "tmp": "^0.1.0",
     "utf8": "^3.0.0",
