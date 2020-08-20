@@ -100,6 +100,33 @@ describe('REST API client', () => {
     });
   });
 
+  it('can request rights for a user', (done) => {
+    /*
+    This test calls the right API endpoint.
+
+    The JSON returned by the API is parsed and returned to callback as the
+    second parameter.
+    */
+    const api = server
+      .get('/api/2/right/')
+      .reply(200, JSON.stringify([{
+        name: 'sftp_access',
+        description: 'Transfer files via encrypted FTP or SFTP.',
+      }, {
+        name: 'ftp_access',
+        description: 'Transfer files via unencrypted FTP.',
+      }]));
+
+    client.right((e, json) => {
+      assertNoError(e);
+      assert(json.length === 2);
+      assert(json[0].name === 'sftp_access');
+      assert(json[1].name === 'ftp_access');
+      assert(api.isDone());
+      done();
+    });
+  });
+
   it('can pipe download to stream', (done) => {
     /*
     This test passes a stream to download().
