@@ -6,7 +6,7 @@
   "scripts": {
     "test": "mocha --recursive --full-trace tests/**/test_*",
     "debug": "mocha inspect --recursive --full-trace tests/**/test_*",
-    "coverage": "nyc npm run test",
+    "coverage": "nyc --reporter=lcov --reporter=text npm run test",
     "lint": "eslint --format node_modules/eslint-friendly-formatter ."
   },
   "husky": {
