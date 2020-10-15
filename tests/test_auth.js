@@ -68,7 +68,7 @@ describe('SmartFile Basic API client', () => {
 
     const api1 = nock(API_URL, {
       reqheaders: {
-        'Cookie': 'foo=bar',
+        Cookie: 'foo=bar',
       },
     })
       .get('/api/2/path/info/foobar')
@@ -78,23 +78,25 @@ describe('SmartFile Basic API client', () => {
       })
       .reply(200);
 
-      const client = new BasicClient({
-        username: 'username',
-        password: 'password',
-        baseUrl: API_URL,
-      });
+    const client = new BasicClient({
+      username: 'username',
+      password: 'password',
+      baseUrl: API_URL,
+    });
 
-      // Ensure we can handle Set-Cookie.
-      client.login((e) => {
-        assert.strictEqual(1, client.cookies.getCookies(new CookieAccessInfo('fakeapi.foo', '/', false, false)).length);
-        assert(api0.isDone());
+    // Ensure we can handle Set-Cookie.
+    client.login((loginError) => {
+      assert(!!loginError);
+      assert.strictEqual(1, client.cookies.getCookies(new CookieAccessInfo('fakeapi.foo', '/', false, false)).length);
+      assert(api0.isDone());
 
-        // Ensure we can handle Cookie.
-        client.info('/foobar', (e) => {
-          assert(api1.isDone());
-          done();
-        });
+      // Ensure we can handle Cookie.
+      client.info('/foobar', (infoError) => {
+        assert(!!infoError);
+        assert(api1.isDone());
+        done();
       });
+    });
   });
 
   it('can handle authentication failure', (done) => {
