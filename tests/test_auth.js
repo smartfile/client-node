@@ -1,6 +1,7 @@
 const nock = require('nock');
 const assert = require('assert');
 const { morph } = require('mock-env');
+const { CookieAccessInfo } = require('cookiejar');
 const { logger, BasicClient } = require('../lib');
 const { assertNoError } = require('./utils');
 
@@ -54,6 +55,46 @@ describe('SmartFile Basic API client', () => {
       assert(api.isDone());
       done();
     });
+  });
+
+  it('can start a session', (done) => {
+    const api0 = nock(API_URL)
+      .post('/api/2/session/')
+      .basicAuth({
+        user: 'username',
+        pass: 'password',
+      })
+      .reply(200, '', { 'Set-Cookie': 'foo=bar' });
+
+    const api1 = nock(API_URL, {
+      reqheaders: {
+        'Cookie': 'foo=bar',
+      },
+    })
+      .get('/api/2/path/info/foobar')
+      .basicAuth({
+        user: 'username',
+        pass: 'password',
+      })
+      .reply(200);
+
+      const client = new BasicClient({
+        username: 'username',
+        password: 'password',
+        baseUrl: API_URL,
+      });
+
+      // Ensure we can handle Set-Cookie.
+      client.login((e) => {
+        assert.strictEqual(1, client.cookies.getCookies(new CookieAccessInfo('fakeapi.foo', '/', false, false)).length);
+        assert(api0.isDone());
+
+        // Ensure we can handle Cookie.
+        client.info('/foobar', (e) => {
+          assert(api1.isDone());
+          done();
+        });
+      });
   });
 
   it('can handle authentication failure', (done) => {
