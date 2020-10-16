@@ -88,7 +88,6 @@ describe('SmartFile Basic API client', () => {
       assert(api0.isDone());
 
       // Ensure we can handle Cookie.
-      debugger;
       client.login((login1Error) => {
         assert(!!login1Error);
         assert(api1.isDone());
