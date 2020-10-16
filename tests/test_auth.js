@@ -68,15 +68,11 @@ describe('SmartFile Basic API client', () => {
 
     const api1 = nock(API_URL, {
       reqheaders: {
-        Cookie: ['foo=bar; csrftoken=ABCD'],
-        'X-CSRFToken': 'ABCD',
+        cookie: 'foo=bar; csrftoken=ABCD',
+        'x-csrftoken': 'ABCD',
       },
     })
-      .get('/api/2/session/')
-      .basicAuth({
-        user: 'username',
-        pass: 'password',
-      })
+      .post('/api/2/session/')
       .reply(200);
 
     const client = new BasicClient({
@@ -92,6 +88,7 @@ describe('SmartFile Basic API client', () => {
       assert(api0.isDone());
 
       // Ensure we can handle Cookie.
+      debugger;
       client.login((login1Error) => {
         assert(!!login1Error);
         assert(api1.isDone());
