@@ -57,7 +57,7 @@ describe('SmartFile Basic API client', () => {
     });
   });
 
-  it('can start a session', (done) => {
+  it('can start a session and handle csrftoken', (done) => {
     const api0 = nock(API_URL)
       .post('/api/2/session/')
       .basicAuth({
@@ -85,12 +85,20 @@ describe('SmartFile Basic API client', () => {
     client.login((login0Error) => {
       assert(!!login0Error);
       assert.strictEqual(2, client.cookies.getCookies(new CookieAccessInfo('fakeapi.foo', '/', false, false)).length);
+      // Credentials removed (using session key (JWT) now)
+      assert.strictEqual(undefined, client.options.auth);
       assert(api0.isDone());
 
-      // Ensure we can handle Cookie.
+      // Ensure we can handle Cookie and CSRF Token.
       client.login((login1Error) => {
         assert(!!login1Error);
         assert(api1.isDone());
+
+        // Ensure we can handle logout().
+        client.logout();
+        // Credentials restored.
+        assert.strictEqual('username:password', client.options.auth);
+
         done();
       });
     });
