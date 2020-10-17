@@ -95,11 +95,12 @@ describe('SmartFile Basic API client', () => {
         assert(api1.isDone());
 
         // Ensure we can handle logout().
-        client.logout();
-        // Credentials restored.
-        assert.strictEqual('username:password', client.options.auth);
-
-        done();
+        client.logout((logoutError) => {
+          // Credentials restored.
+          assert(!!logoutError);
+          assert.strictEqual('username:password', client.options.auth);
+          done();
+        });
       });
     });
   });
