@@ -65,7 +65,7 @@ describe('SmartFile Basic API client', () => {
         user: 'username',
         pass: 'password',
       })
-      .reply(200, '{}', { 'Set-Cookie': ['sessionid=bar', 'csrftoken=ABCD'] });
+      .reply(201, '{}', { 'Set-Cookie': ['sessionid=bar', 'csrftoken=ABCD'] });
 
     const api1 = nock(API_URL, {
       reqheaders: {
@@ -92,7 +92,7 @@ describe('SmartFile Basic API client', () => {
       },
     })
       .delete('/api/2/session/')
-      .reply(200, '{}');
+      .reply(204, '{}');
 
     const client = new BasicClient({
       username: 'username',
