@@ -34,7 +34,7 @@ describe('SmartFile Basic API client', () => {
     assert.strictEqual(client.baseUrl, API_URL);
     assert.strictEqual(client.username, 'foobar');
     assert.strictEqual(client.password, 'baz');
-});
+  });
 
   it('can authenticate', (done) => {
     const api = nock(API_URL)
@@ -92,7 +92,7 @@ describe('SmartFile Basic API client', () => {
       },
     })
       .delete('/api/2/session/')
-      .reply(200, '{}')
+      .reply(200, '{}');
 
     const client = new BasicClient({
       username: 'username',
