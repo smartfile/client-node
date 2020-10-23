@@ -74,7 +74,7 @@ describe('SmartFile Basic API client', () => {
       },
     })
       .post('/api/2/session/')
-      .reply(200, '{}');
+      .reply(201, '{}');
 
     const api2 = nock(API_URL, {
       reqheaders: {
