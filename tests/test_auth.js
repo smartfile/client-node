@@ -1,6 +1,7 @@
 const nock = require('nock');
 const assert = require('assert');
 const { morph } = require('mock-env');
+const { CookieAccessInfo } = require('cookiejar');
 const { logger, BasicClient } = require('../lib');
 const { assertNoError } = require('./utils');
 
@@ -30,8 +31,9 @@ describe('SmartFile Basic API client', () => {
       SMARTFILE_PASS: 'baz',
     });
 
-    assert(client.baseUrl === API_URL);
-    assert(client.options.auth === 'foobar:baz');
+    assert.strictEqual(client.baseUrl, API_URL);
+    assert.strictEqual(client.username, 'foobar');
+    assert.strictEqual(client.password, 'baz');
   });
 
   it('can authenticate', (done) => {
@@ -53,6 +55,73 @@ describe('SmartFile Basic API client', () => {
       assertNoError(e);
       assert(api.isDone());
       done();
+    });
+  });
+
+  it('can start a session and handle csrftoken', (done) => {
+    const api0 = nock(API_URL)
+      .post('/api/2/session/')
+      .basicAuth({
+        user: 'username',
+        pass: 'password',
+      })
+      .reply(201, '{}', { 'Set-Cookie': ['sessionid=bar', 'csrftoken=ABCD'] });
+
+    const api1 = nock(API_URL, {
+      reqheaders: {
+        cookie: 'sessionid=bar; csrftoken=ABCD',
+        'x-csrftoken': 'ABCD',
+      },
+    })
+      .post('/api/2/session/')
+      .reply(201, '{}');
+
+    const api2 = nock(API_URL, {
+      reqheaders: {
+        cookie: 'sessionid=bar; csrftoken=ABCD',
+      },
+    })
+      .get('/api/2/whoami/')
+      .twice()
+      .reply(200, '{ "username": "user" }');
+
+    const api3 = nock(API_URL, {
+      reqheaders: {
+        cookie: 'sessionid=bar; csrftoken=ABCD',
+        'x-csrftoken': 'ABCD',
+      },
+    })
+      .delete('/api/2/session/')
+      .reply(204, '{}');
+
+    const client = new BasicClient({
+      username: 'username',
+      password: 'password',
+      baseUrl: API_URL,
+    });
+
+    // Ensure we can handle Set-Cookie.
+    client.login((login0Error) => {
+      assert(!login0Error);
+      assert.strictEqual(2, client.cookies.getCookies(new CookieAccessInfo('fakeapi.foo', '/', false, false)).length);
+      // Credentials removed (using session key (JWT) now)
+      assert(api0.isDone());
+
+      // Ensure we can handle Cookie and CSRF Token.
+      client.login((login1Error) => {
+        assert(!login1Error);
+        assert(api1.isDone());
+        assert(api2.isDone());
+
+        // Ensure we can handle logout().
+        client.logout((logoutError) => {
+          // Credentials restored.
+          assert(!logoutError);
+          assert(api3.isDone());
+          assert.strictEqual(0, client.cookies.getCookies(new CookieAccessInfo('fakeapi.foo', '/', false, false)).length);
+          done();
+        });
+      });
     });
   });
 
@@ -109,7 +178,8 @@ describe('SmartFile Basic API client', () => {
     let client;
     credentials.forEach((opts) => {
       client = new BasicClient(opts);
-      assert(client.options.auth === 'username:password');
+      assert.strictEqual(client.username, 'username');
+      assert.strictEqual(client.password, 'password');
     });
   });
 });
