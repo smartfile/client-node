@@ -92,7 +92,7 @@ describe('SmartFile Basic API client', () => {
       },
     })
       .delete('/api/2/session/')
-      .reply(204, '{}');
+      .reply(204, '');
 
     const client = new BasicClient({
       username: 'username',
@@ -115,6 +115,7 @@ describe('SmartFile Basic API client', () => {
 
         // Ensure we can handle logout().
         client.endSession((logoutError) => {
+          console.log(logoutError);
           // Credentials restored.
           assert(!logoutError);
           assert(api3.isDone());
