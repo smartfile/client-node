@@ -101,23 +101,22 @@ describe('SmartFile Basic API client', () => {
     });
 
     // Ensure we can handle Set-Cookie.
-    client.startSession((login0Error) => {
-      assert(!login0Error);
+    client.startSession((start0Error) => {
+      assert(!start0Error);
       assert.strictEqual(2, client.cookies.getCookies(new CookieAccessInfo('fakeapi.foo', '/', false, false)).length);
       // Credentials removed (using session key (JWT) now)
       assert(api0.isDone());
 
       // Ensure we can handle Cookie and CSRF Token.
-      client.startSession((login1Error) => {
-        assert(!login1Error);
+      client.startSession((start1Error) => {
+        assert(!start1Error);
         assert(api1.isDone());
         assert(api2.isDone());
 
         // Ensure we can handle logout().
-        client.endSession((logoutError) => {
-          console.log(logoutError);
+        client.endSession((endError) => {
           // Credentials restored.
-          assert(!logoutError);
+          assert(!endError);
           assert(api3.isDone());
           assert.strictEqual(0, client.cookies.getCookies(new CookieAccessInfo('fakeapi.foo', '/', false, false)).length);
           done();
