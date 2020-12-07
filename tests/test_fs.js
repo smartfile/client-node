@@ -191,15 +191,16 @@ describe('File System Abstraction', () => {
   it('can readdirstats() incrementally', (done) => {
     const api0 = server
       .get('/api/2/path/info/foobar')
-      .query({ children: 'true', limit: 100 })
+      .query({ children: 'true', limit: 2 })
       .reply(200, '{ "page": 1, "pages": 2, "name": "foobar", "path": "/foobar", "children": [{"name": "foo", "path": "/foobar/foo", "size": 10 }, {"name": "bar", "path": "/foobar/bar", "size": 10}]}');
 
     const api1 = server
       .get('/api/2/path/info/foobar')
-      .query({ children: 'true', limit: 100, page: 2 })
+      .query({ children: 'true', limit: 2, page: 2 })
       .reply(200, '{ "page": 2, "pages": 2, "name": "foobar", "path": "/foobar", "children": [{"name": "baz", "path": "/foobar/baz", "size": 10 }, {"name": "quux", "path": "/foobar/quux", "size": 10}]}');
 
     let calls = 0;
+    debugger;
     sffs.readdirstats('/foobar', (e, json) => {
       // eslint-disable-next-line no-plusplus
       switch (++calls) {
@@ -233,7 +234,10 @@ describe('File System Abstraction', () => {
           assert.fail('too many callbacks');
           break;
       }
-    }, { incremental: true });
+    }, {
+      incremental: true,
+      limit: 2,
+    });
   });
 
   it('can open a write stream', (done) => {
