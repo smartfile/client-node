@@ -156,6 +156,7 @@ describe('File System Abstraction', () => {
       .query({ children: 'true', limit: 100 })
       .reply(200, '{ "name": "foobar", "path": "/foobar", "children": [{"name": "foo", "path": "/foobar/foo", "size": 10 }, {"name": "bar", "path": "/foobar/bar", "size": 10}]}');
 
+    debugger;
     sffs.readdir('/foobar', (e, json) => {
       assert(sffs.statCache['/foobar']);
       assert(sffs.statCache['/foobar/foo']);
