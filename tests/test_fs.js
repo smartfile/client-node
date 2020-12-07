@@ -201,7 +201,8 @@ describe('File System Abstraction', () => {
 
     let calls = 0;
     sffs.readdirstats('/foobar', (e, json) => {
-      switch (calls += 1) {
+      // eslint-disable-next-line no-plusplus
+      switch (++calls) {
         case 1:
           assertNoError(e);
           assert(sffs.statCache['/foobar']);
