@@ -26,7 +26,7 @@ coverage:
 
 .PHONY: version
 version:
-	npm version ${VERSION}
+	npm version --allow-same-version ${VERSION}
 
 .PHONY: clean
 clean:
