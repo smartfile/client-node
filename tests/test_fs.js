@@ -200,7 +200,6 @@ describe('File System Abstraction', () => {
       .reply(200, '{ "page": 2, "pages": 2, "name": "foobar", "path": "/foobar", "children": [{"name": "baz", "path": "/foobar/baz", "size": 10 }, {"name": "quux", "path": "/foobar/quux", "size": 10}]}');
 
     let calls = 0;
-    debugger;
     sffs.readdirstats('/foobar', (e, json) => {
       // eslint-disable-next-line no-plusplus
       switch (++calls) {
