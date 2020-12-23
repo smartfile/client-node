@@ -3,7 +3,6 @@ const assert = require('assert');
 const { morph } = require('mock-env');
 const { CookieAccessInfo } = require('cookiejar');
 const { logger, BasicClient } = require('../lib');
-const { assertNoError } = require('./utils');
 
 
 const API_URL = 'http://fakeapi.foo/';
@@ -52,7 +51,7 @@ describe('SmartFile Basic API client', () => {
     });
 
     client.info('/foobar', (e) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(api.isDone());
       done();
     });
