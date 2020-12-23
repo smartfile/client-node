@@ -3,7 +3,6 @@ const assert = require('assert');
 const streams = require('memory-streams');
 const { logger, Client } = require('../lib');
 const { normPath, encodePath } = require('../lib/rest/client');
-const { assertNoError } = require('./utils');
 
 
 const API_URL = 'http://fakeapi.foo/';
@@ -39,7 +38,7 @@ describe('REST API client', () => {
       .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
 
     client.info('/foobar', (e) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(api.isDone());
       done();
     });
@@ -74,7 +73,7 @@ describe('REST API client', () => {
       .reply(200, '{ "ping": "pong" }');
 
     client.ping((e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.ping === 'pong');
       assert(api.isDone());
       done();
@@ -93,7 +92,7 @@ describe('REST API client', () => {
       .reply(200, '{ "username": "user" }');
 
     client.whoami((e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.username === 'user');
       assert(api.isDone());
       done();
@@ -118,7 +117,7 @@ describe('REST API client', () => {
       }]));
 
     client.right((e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.length === 2);
       assert(json[0].name === 'sftp_access');
       assert(json[1].name === 'ftp_access');
@@ -163,7 +162,7 @@ describe('REST API client', () => {
       .reply(200, '{"size": 4, "name": "foobar", "path": "/foobar"}');
 
     client.upload('/foobar', rs, (e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.name === 'foobar');
       assert(api.isDone());
       done();
@@ -184,7 +183,7 @@ describe('REST API client', () => {
       .reply(200, '{"size": 4, "name": "foobar", "path": "/foobar"}');
 
     rs.pipe(client.upload('/foobar', (e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.name === 'foobar');
       assert(api.isDone());
       done();
@@ -209,7 +208,7 @@ describe('REST API client', () => {
       .reply(200, '{"size": 4, "name": "f©®βàr¡", "path": "/foobar"}');
 
     rs.pipe(client.upload('/f©®βàr¡', (e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.name === 'f©®βàr¡');
       assert(api.isDone());
       done();
@@ -222,7 +221,7 @@ describe('REST API client', () => {
       .reply(200, '{ "name": "foobar" }');
 
     client.info('/foobar', (e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.name === 'foobar');
       assert(api.isDone());
       done();
@@ -235,7 +234,7 @@ describe('REST API client', () => {
       .reply(200, '{ "name": "f©®βàr¡" }');
 
     client.info('/f©®βàr¡', (e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.name === 'f©®βàr¡');
       assert(api.isDone());
       done();
@@ -250,7 +249,7 @@ describe('REST API client', () => {
 
     let calls = 0;
     client.info('/foobar', (e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
 
       // Should receive 2 calls, a page of results plus null.
       switch (calls += 1) {
@@ -285,7 +284,7 @@ describe('REST API client', () => {
 
     let calls = 0;
     client.info('/foobar', (e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
 
       // Should receive 3 calls, 2 pages plus null.
       switch (calls += 1) {
@@ -319,7 +318,7 @@ describe('REST API client', () => {
       .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
 
     client.mkdir('/foobar', (e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.name === 'foobar');
       assert(json.isdir === true);
       assert(api.isDone());
@@ -333,7 +332,7 @@ describe('REST API client', () => {
       .reply(200, '{ "name": "f©®βàr¡", "isdir": true, "isfile": false }');
 
     client.mkdir('/f©®βàr¡', (e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.name === 'f©®βàr¡');
       assert(json.isdir === true);
       assert(api.isDone());
@@ -355,7 +354,7 @@ describe('REST API client', () => {
       .reply(200, ' { "result": { "status": "SUCCESS", "result": {} }}');
 
     client.delete('/foobar', (e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.result.status === 'SUCCESS');
       assert(api0.isDone());
       assert(api1.isDone());
@@ -370,7 +369,7 @@ describe('REST API client', () => {
       .reply(204);
 
     client.deleteFile('/foobar', (e) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(api0.isDone());
       done();
     });
@@ -386,7 +385,7 @@ describe('REST API client', () => {
       .reply(200, ' { "result": { "status": "SUCCESS", "result": {} }}');
 
     client.copy('/foobar', '/baz', (e) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(api0.isDone());
       assert(api1.isDone());
       done();
@@ -420,7 +419,7 @@ describe('REST API client', () => {
       .reply(200, ' { "result": { "status": "SUCCESS", "result": {}}}');
 
     client.move('/foobar', '/baz', (e) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(api0.isDone());
       assert(api1.isDone());
       done();
@@ -433,7 +432,7 @@ describe('REST API client', () => {
       .reply(200, '{ }');
 
     client.rename('/foobar', '/baz', (e) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(api.isDone());
       done();
     });
@@ -449,7 +448,7 @@ describe('REST API client', () => {
       .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
 
     client.info('/foobar', (e) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(api0.isDone());
       assert(api1.isDone());
       done();
@@ -462,7 +461,7 @@ describe('REST API client', () => {
       .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
 
     client.info('foo&bar', (e) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(api.isDone());
       done();
     });
@@ -483,7 +482,7 @@ describe('REST API client', () => {
       .reply(200, '{ "username": "user" }');
 
     client.whoami((e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.username === 'user');
       assert(api.isDone());
       done();

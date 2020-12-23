@@ -1,6 +1,5 @@
 const nock = require('nock');
 const assert = require('assert');
-const { assertNoError } = require('./utils');
 const { logger, Client, Keys } = require('../lib');
 
 
@@ -45,7 +44,7 @@ describe('SSH Key Management', () => {
       .reply(200, JSON.stringify(KEYS));
 
     keys.list((e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(api0.isDone());
       assert(json.length === 2);
       done();
@@ -58,7 +57,7 @@ describe('SSH Key Management', () => {
       .reply(200, JSON.stringify(KEY0));
 
     keys.get(KEY0.name, (e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(api0.isDone());
       assert(json.name === KEY0.name);
       done();
@@ -71,7 +70,7 @@ describe('SSH Key Management', () => {
       .reply(200, JSON.stringify(KEY0));
 
     keys.save(KEY0, (e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(api0.isDone());
       assert(json.name === KEY0.name);
       done();
@@ -84,7 +83,7 @@ describe('SSH Key Management', () => {
       .reply(200, JSON.stringify(KEY1));
 
     keys.update('foo', KEY1, (e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(api0.isDone());
       assert(json.name === KEY1.name);
       done();
@@ -97,7 +96,7 @@ describe('SSH Key Management', () => {
       .reply(204);
 
     keys.delete('foo', (e) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(api0.isDone());
       done();
     });

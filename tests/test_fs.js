@@ -3,7 +3,6 @@ const nock = require('nock');
 const assert = require('assert');
 const smartfile = require('../lib');
 const { CACHE_HIT } = require('../lib/fs/filesystem');
-const { assertNoError, assertError } = require('./utils');
 
 
 const API_URL = 'http://fakeapi.foo/';
@@ -57,7 +56,7 @@ describe('File System Abstraction', () => {
 
       const buffer = Buffer.alloc(4);
       sffs.read(fd, buffer, 0, 4, 0, (readError, bytesRead, data) => {
-        assertNoError(readError);
+        assert.ifError(readError);
         assert(bytesRead === 4);
         assert(data.toString() === 'BODY');
         assert(api.isDone());
@@ -73,7 +72,7 @@ describe('File System Abstraction', () => {
 
     sffs.readFile('/foobar', (e, buffer) => {
       assert(api.isDone());
-      assertNoError(e);
+      assert.ifError(e);
       assert(buffer.toString() === 'BODY');
       done();
     });
@@ -100,7 +99,7 @@ describe('File System Abstraction', () => {
 
         sffs.close(fd, (closeError) => {
           assert(!sffs.statCache['/foobar']);
-          assertNoError(closeError);
+          assert.ifError(closeError);
           assert(api.isDone());
           done();
         });
@@ -118,7 +117,7 @@ describe('File System Abstraction', () => {
     sffs.writeFile('/foobar', buff, (e) => {
       assert(!sffs.statCache['/foobar']);
       assert(api.isDone());
-      assertNoError(e);
+      assert.ifError(e);
       done();
     });
   });
@@ -130,7 +129,7 @@ describe('File System Abstraction', () => {
 
     sffs.rmdir('/foobar', (e, json) => {
       assert(!sffs.statCache['/foobar']);
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.result.status === 'SUCCESS');
       assert(api.isDone());
       done();
@@ -143,7 +142,7 @@ describe('File System Abstraction', () => {
       .reply(404, 'NOT FOUND');
 
     sffs.unlink('/foobar', (e, json) => {
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.result.status === 'SUCCESS');
       assert(api.isDone());
       done();
@@ -160,7 +159,7 @@ describe('File System Abstraction', () => {
       assert(sffs.statCache['/foobar']);
       assert(sffs.statCache['/foobar/foo']);
       assert(sffs.statCache['/foobar/bar']);
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.sort().toString() === ['bar', 'foo'].sort().toString());
       assert(api.isDone());
       done();
@@ -174,13 +173,13 @@ describe('File System Abstraction', () => {
       .reply(200, '{ "children": [{"name": "foo", "path": "/foobar/foo", "size": 10 }, {"name": "bar", "path": "/foobar/bar", "size": 10}]}');
 
     sffs.readdir('/foobar', (readdirError, readDirJson) => {
-      assertNoError(readdirError);
+      assert.ifError(readdirError);
       assert(readDirJson.sort().toString() === ['bar', 'foo'].sort().toString());
       assert(api.isDone());
 
       // Ensure a follow-on stat() call succeeds (from cache)
       sffs.stat('/foobar/foo', (statError, statJson) => {
-        assertNoError(statError);
+        assert.ifError(statError);
         assertMetric(CACHE_HIT, 1);
         assert(statJson.name === 'foo');
         done();
@@ -204,7 +203,7 @@ describe('File System Abstraction', () => {
       // eslint-disable-next-line no-plusplus
       switch (++calls) {
         case 1:
-          assertNoError(e);
+          assert.ifError(e);
           assert(sffs.statCache['/foobar']);
           assert(sffs.statCache['/foobar/foo']);
           assert(sffs.statCache['/foobar/bar']);
@@ -213,7 +212,7 @@ describe('File System Abstraction', () => {
           break;
 
         case 2:
-          assertNoError(e);
+          assert.ifError(e);
           assert(sffs.statCache['/foobar']);
           assert(sffs.statCache['/foobar/baz']);
           assert(sffs.statCache['/foobar/quux']);
@@ -223,7 +222,7 @@ describe('File System Abstraction', () => {
           break;
 
         case 3:
-          assertNoError(e);
+          assert.ifError(e);
           assert(json === null);
           assert(api1.isDone());
           done();
@@ -246,7 +245,7 @@ describe('File System Abstraction', () => {
 
     const s = sffs.createWriteStream('/foobar', (e, json) => {
       assert(!sffs.statCache['/foobar']);
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.name === 'foobar');
       assert(api.isDone());
       done();
@@ -262,7 +261,7 @@ describe('File System Abstraction', () => {
 
     const s = sffs.createWriteStream('/foobar', null, (e, json) => {
       assert(!sffs.statCache['/foobar']);
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.name === 'foobar');
       assert(api.isDone());
       done();
@@ -284,7 +283,7 @@ describe('File System Abstraction', () => {
 
     const s = sffs.createWriteStream('/foobar', { offset: 100, timestamp: ts.unix() }, (e, json) => {
       assert(!sffs.statCache['/foobar']);
-      assertNoError(e);
+      assert.ifError(e);
       assert(json.name === 'foobar');
       assert(api.isDone());
       done();
@@ -299,7 +298,7 @@ describe('File System Abstraction', () => {
       .reply(500, 'Internal server error');
 
     const s = sffs.createWriteStream('/foobar', (e) => {
-      assertError(e, 500);
+      assert.strictEqual(e.statusCode, 500);
       assert(api.isDone());
       done();
     });
@@ -314,7 +313,7 @@ describe('File System Abstraction', () => {
 
     sffs.createReadStream('/foobar', (e, s) => {
       let buffer = '';
-      assertNoError(e);
+      assert.ifError(e);
       s
         .on('data', (chunk) => {
           buffer += chunk.toString();
@@ -334,7 +333,7 @@ describe('File System Abstraction', () => {
 
     sffs.createReadStream('/foobar', null, (e, s) => {
       let buffer = '';
-      assertNoError(e);
+      assert.ifError(e);
       s
         .on('data', (chunk) => {
           buffer += chunk.toString();
@@ -358,7 +357,7 @@ describe('File System Abstraction', () => {
 
     sffs.createReadStream('/foobar', { offset: 100 }, (e, s) => {
       let buffer = '';
-      assertNoError(e);
+      assert.ifError(e);
       s
         .on('data', (chunk) => {
           buffer += chunk.toString();
