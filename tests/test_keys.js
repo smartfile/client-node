@@ -46,7 +46,7 @@ describe('SSH Key Management', () => {
     keys.list((e, json) => {
       assert.ifError(e);
       assert(api0.isDone());
-      assert(json.length === 2);
+      assert.strictEqual(json.length, 2);
       done();
     });
   });
@@ -59,7 +59,7 @@ describe('SSH Key Management', () => {
     keys.get(KEY0.name, (e, json) => {
       assert.ifError(e);
       assert(api0.isDone());
-      assert(json.name === KEY0.name);
+      assert.strictEqual(json.name, KEY0.name);
       done();
     });
   });
@@ -72,7 +72,7 @@ describe('SSH Key Management', () => {
     keys.save(KEY0, (e, json) => {
       assert.ifError(e);
       assert(api0.isDone());
-      assert(json.name === KEY0.name);
+      assert.strictEqual(json.name, KEY0.name);
       done();
     });
   });
@@ -85,7 +85,7 @@ describe('SSH Key Management', () => {
     keys.update('foo', KEY1, (e, json) => {
       assert.ifError(e);
       assert(api0.isDone());
-      assert(json.name === KEY1.name);
+      assert.strictEqual(json.name, KEY1.name);
       done();
     });
   });

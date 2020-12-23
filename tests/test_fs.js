@@ -18,7 +18,7 @@ function assertMetric(metric, value) {
     return;
   }
   assert(values.length);
-  assert(values[0].value === value);
+  assert.strictEqual(values[0].value, value);
 }
 
 // NOTE: We only test the open function as all the other actions are trivial
@@ -57,8 +57,8 @@ describe('File System Abstraction', () => {
       const buffer = Buffer.alloc(4);
       sffs.read(fd, buffer, 0, 4, 0, (readError, bytesRead, data) => {
         assert.ifError(readError);
-        assert(bytesRead === 4);
-        assert(data.toString() === 'BODY');
+        assert.strictEqual(bytesRead, 4);
+        assert.strictEqual(data.toString(), 'BODY');
         assert(api.isDone());
         done();
       });
@@ -73,7 +73,7 @@ describe('File System Abstraction', () => {
     sffs.readFile('/foobar', (e, buffer) => {
       assert(api.isDone());
       assert.ifError(e);
-      assert(buffer.toString() === 'BODY');
+      assert.strictEqual(buffer.toString(), 'BODY');
       done();
     });
   });
@@ -130,7 +130,7 @@ describe('File System Abstraction', () => {
     sffs.rmdir('/foobar', (e, json) => {
       assert(!sffs.statCache['/foobar']);
       assert.ifError(e);
-      assert(json.result.status === 'SUCCESS');
+      assert.strictEqual(json.result.status, 'SUCCESS');
       assert(api.isDone());
       done();
     });
@@ -143,7 +143,7 @@ describe('File System Abstraction', () => {
 
     sffs.unlink('/foobar', (e, json) => {
       assert.ifError(e);
-      assert(json.result.status === 'SUCCESS');
+      assert.strictEqual(json.result.status, 'SUCCESS');
       assert(api.isDone());
       done();
     });
@@ -160,7 +160,7 @@ describe('File System Abstraction', () => {
       assert(sffs.statCache['/foobar/foo']);
       assert(sffs.statCache['/foobar/bar']);
       assert.ifError(e);
-      assert(json.sort().toString() === ['bar', 'foo'].sort().toString());
+      assert.deepStrictEqual(json.sort(), ['bar', 'foo']);
       assert(api.isDone());
       done();
     });
@@ -174,14 +174,14 @@ describe('File System Abstraction', () => {
 
     sffs.readdir('/foobar', (readdirError, readDirJson) => {
       assert.ifError(readdirError);
-      assert(readDirJson.sort().toString() === ['bar', 'foo'].sort().toString());
+      assert.deepStrictEqual(readDirJson.sort(), ['bar', 'foo']);
       assert(api.isDone());
 
       // Ensure a follow-on stat() call succeeds (from cache)
       sffs.stat('/foobar/foo', (statError, statJson) => {
         assert.ifError(statError);
         assertMetric(CACHE_HIT, 1);
-        assert(statJson.name === 'foo');
+        assert.strictEqual(statJson.name, 'foo');
         done();
       });
     });
@@ -207,8 +207,8 @@ describe('File System Abstraction', () => {
           assert(sffs.statCache['/foobar']);
           assert(sffs.statCache['/foobar/foo']);
           assert(sffs.statCache['/foobar/bar']);
-          assert(json[0].name === 'foo');
-          assert(json[1].name === 'bar');
+          assert.strictEqual(json[0].name, 'foo');
+          assert.strictEqual(json[1].name, 'bar');
           break;
 
         case 2:
@@ -216,14 +216,14 @@ describe('File System Abstraction', () => {
           assert(sffs.statCache['/foobar']);
           assert(sffs.statCache['/foobar/baz']);
           assert(sffs.statCache['/foobar/quux']);
-          assert(json[0].name === 'baz');
-          assert(json[1].name === 'quux');
+          assert.strictEqual(json[0].name, 'baz');
+          assert.strictEqual(json[1].name, 'quux');
           assert(api0.isDone());
           break;
 
         case 3:
           assert.ifError(e);
-          assert(json === null);
+          assert.strictEqual(json, null);
           assert(api1.isDone());
           done();
           break;
@@ -246,7 +246,7 @@ describe('File System Abstraction', () => {
     const s = sffs.createWriteStream('/foobar', (e, json) => {
       assert(!sffs.statCache['/foobar']);
       assert.ifError(e);
-      assert(json.name === 'foobar');
+      assert.strictEqual(json.name, 'foobar');
       assert(api.isDone());
       done();
     });
@@ -262,7 +262,7 @@ describe('File System Abstraction', () => {
     const s = sffs.createWriteStream('/foobar', null, (e, json) => {
       assert(!sffs.statCache['/foobar']);
       assert.ifError(e);
-      assert(json.name === 'foobar');
+      assert.strictEqual(json.name, 'foobar');
       assert(api.isDone());
       done();
     });
@@ -284,7 +284,7 @@ describe('File System Abstraction', () => {
     const s = sffs.createWriteStream('/foobar', { offset: 100, timestamp: ts.unix() }, (e, json) => {
       assert(!sffs.statCache['/foobar']);
       assert.ifError(e);
-      assert(json.name === 'foobar');
+      assert.strictEqual(json.name, 'foobar');
       assert(api.isDone());
       done();
     });
@@ -319,7 +319,7 @@ describe('File System Abstraction', () => {
           buffer += chunk.toString();
         })
         .on('end', () => {
-          assert(buffer === 'BODY');
+          assert.strictEqual(buffer, 'BODY');
           assert(api.isDone());
           done();
         });
@@ -339,7 +339,7 @@ describe('File System Abstraction', () => {
           buffer += chunk.toString();
         })
         .on('end', () => {
-          assert(buffer === 'BODY');
+          assert.strictEqual(buffer, 'BODY');
           assert(api.isDone());
           done();
         });
@@ -363,7 +363,7 @@ describe('File System Abstraction', () => {
           buffer += chunk.toString();
         })
         .on('end', () => {
-          assert(buffer === 'BODY');
+          assert.strictEqual(buffer, 'BODY');
           assert(api.isDone());
           done();
         });
@@ -383,14 +383,14 @@ describe('File System Abstraction', () => {
     sffs.cacheLevel = 2;
 
     sffs.stat('/foobar', (e0, json0) => {
-      assert(e0.statusCode === 404);
-      assert(json0 === undefined);
-      assert(count === 1);
+      assert.strictEqual(e0.statusCode, 404);
+      assert.strictEqual(json0, undefined);
+      assert.strictEqual(count, 1);
 
       sffs.stat('/foobar', (e1, json1) => {
-        assert(e1.statusCode === 404);
-        assert(json1 === undefined);
-        assert(count === 1);
+        assert.strictEqual(e1.statusCode, 404);
+        assert.strictEqual(json1, undefined);
+        assert.strictEqual(count, 1);
         done();
       });
     });
