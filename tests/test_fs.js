@@ -66,7 +66,7 @@ describe('File System Abstraction', () => {
     });
   });
 
-  it('can readFile', (done) => {
+  it('can readFile()', (done) => {
     const api = server
       .get('/api/2/path/data/foobar')
       .reply(200, 'BODY');
@@ -108,7 +108,7 @@ describe('File System Abstraction', () => {
     });
   });
 
-  it('can writeFile', (done) => {
+  it('can writeFile()', (done) => {
     const api = server
       .post('/api/2/path/data/')
       .reply(200, '{ "name": "foobar", "path": "/foobar" }');
@@ -152,9 +152,9 @@ describe('File System Abstraction', () => {
 
   it('can readdir()', (done) => {
     const api = server
-      .get('/api/2/path/info/foobar')
-      .query({ children: 'true', limit: 100 })
-      .reply(200, '{ "name": "foobar", "path": "/foobar", "children": [{"name": "foo", "path": "/foobar/foo", "size": 10 }, {"name": "bar", "path": "/foobar/bar", "size": 10}]}');
+      .get('/api/3/path/info/foobar')
+      .query({ fields: 'children', 'children.limit': 512 })
+      .reply(200, '{ "name": "foobar", "path": "/foobar", "children": { "count": 2, "limit": 512, "offset": null, "results": [{"name": "foo", "path": "/foobar/foo", "size": 10 }, {"name": "bar", "path": "/foobar/bar", "size": 10}]}}');
 
     sffs.readdir('/foobar', (e, json) => {
       assert(sffs.statCache['/foobar']);
@@ -169,9 +169,9 @@ describe('File System Abstraction', () => {
 
   it('can stat() from cache', (done) => {
     const api = server
-      .get('/api/2/path/info/foobar')
-      .query({ children: 'true', limit: 100 })
-      .reply(200, '{ "children": [{"name": "foo", "path": "/foobar/foo", "size": 10 }, {"name": "bar", "path": "/foobar/bar", "size": 10}]}');
+      .get('/api/3/path/info/foobar')
+      .query({ fields: 'children', 'children.limit': 512 })
+      .reply(200, '{ "children": { "count": 2, "offset": null, "limit": 512, "results": [{"name": "foo", "path": "/foobar/foo", "size": 10 }, {"name": "bar", "path": "/foobar/bar", "size": 10}]}}');
 
     sffs.readdir('/foobar', (readdirError, readDirJson) => {
       assertNoError(readdirError);
@@ -190,14 +190,14 @@ describe('File System Abstraction', () => {
 
   it('can readdirstats() incrementally', (done) => {
     const api0 = server
-      .get('/api/2/path/info/foobar')
-      .query({ children: 'true', limit: 2 })
-      .reply(200, '{ "page": 1, "pages": 2, "name": "foobar", "path": "/foobar", "children": [{"name": "foo", "path": "/foobar/foo", "size": 10 }, {"name": "bar", "path": "/foobar/bar", "size": 10}]}');
+      .get('/api/3/path/info/foobar')
+      .query({ fields: 'children', 'children.limit': 2 })
+      .reply(200, '{ "name": "foobar", "path": "/foobar", "children": { "count": 2, "limit": 2, "offset": null, "results": [{"name": "foo", "path": "/foobar/foo", "size": 10 }, {"name": "bar", "path": "/foobar/bar", "size": 10}]}}');
 
     const api1 = server
-      .get('/api/2/path/info/foobar')
-      .query({ children: 'true', limit: 2, page: 2 })
-      .reply(200, '{ "page": 2, "pages": 2, "name": "foobar", "path": "/foobar", "children": [{"name": "baz", "path": "/foobar/baz", "size": 10 }, {"name": "quux", "path": "/foobar/quux", "size": 10}]}');
+      .get('/api/3/path/info/foobar')
+      .query({ fields: 'children', 'children.limit': 2, 'children.offset': 2 })
+      .reply(200, '{ "name": "foobar", "path": "/foobar", "children": { "count": 1, "limit": 2, "offset": 2, "results": [{"name": "baz", "path": "/foobar/baz", "size": 10 }, {"name": "quux", "path": "/foobar/quux", "size": 10}]}}');
 
     let calls = 0;
     sffs.readdirstats('/foobar', (e, json) => {
@@ -374,7 +374,7 @@ describe('File System Abstraction', () => {
   it('can cache a missing item', (done) => {
     let count = 0;
     nock(API_URL)
-      .get('/api/2/path/info/foobar')
+      .get('/api/3/path/info/foobar')
       .reply(() => {
         count += 1;
         return [404, 'File not found'];

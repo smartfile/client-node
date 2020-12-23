@@ -38,7 +38,7 @@ describe('SmartFile Basic API client', () => {
 
   it('can authenticate', (done) => {
     const api = nock(API_URL)
-      .get('/api/2/path/info/foobar')
+      .get('/api/3/path/info/foobar')
       .basicAuth({
         user: 'username',
         pass: 'password',
@@ -127,7 +127,7 @@ describe('SmartFile Basic API client', () => {
 
   it('can handle authentication failure', (done) => {
     const api = nock(API_URL)
-      .get('/api/2/path/info/foobar')
+      .get('/api/3/path/info/foobar')
       .basicAuth({
         user: 'username',
         pass: 'password',

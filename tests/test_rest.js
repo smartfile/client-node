@@ -35,7 +35,7 @@ describe('REST API client', () => {
         'X-Custom-Header': 'foobar',
       },
     })
-      .get('/api/2/path/info/foobar')
+      .get('/api/3/path/info/foobar')
       .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
 
     client.info('/foobar', (e) => {
@@ -218,7 +218,7 @@ describe('REST API client', () => {
 
   it('can retrieve information about a path', (done) => {
     const api = server
-      .get('/api/2/path/info/foobar')
+      .get('/api/3/path/info/foobar')
       .reply(200, '{ "name": "foobar" }');
 
     client.info('/foobar', (e, json) => {
@@ -231,7 +231,7 @@ describe('REST API client', () => {
 
   it('can retrieve information about a non-ascii path', (done) => {
     const api = server
-      .get('/api/2/path/info/f%C2%A9%C2%AE%CE%B2%C3%A0r%C2%A1')
+      .get('/api/3/path/info/f%C2%A9%C2%AE%CE%B2%C3%A0r%C2%A1')
       .reply(200, '{ "name": "f©®βàr¡" }');
 
     client.info('/f©®βàr¡', (e, json) => {
@@ -244,23 +244,23 @@ describe('REST API client', () => {
 
   it('can retrieve a directory listing', (done) => {
     const api = server
-      .get('/api/2/path/info/foobar')
-      .query({ children: 'true', limit: 100 })
-      .reply(200, '{ "page": 1, "pages": 1, "children": [{ "name": "foo" }, { "name": "bar" }]}');
+      .get('/api/3/path/info/foobar')
+      .query({ fields: 'children', 'children.limit': 512 })
+      .reply(200, '{ "children": { "count": 2, "limit": null, "offset": null, "results": [{ "name": "foo" }, { "name": "bar" }]}}');
 
     let calls = 0;
-    client.info('/foobar', (e, json) => {
+    client.info('/foobar', (e, children) => {
       assertNoError(e);
 
       // Should receive 2 calls, a page of results plus null.
       switch (calls += 1) {
         case 1:
-          assert(json[0].name === 'foo');
-          assert(json[1].name === 'bar');
+          assert(children[0].name === 'foo');
+          assert(children[1].name === 'bar');
           break;
 
         case 2:
-          assert(json === null);
+          assert(children === null);
           assert(api.isDone());
           done();
           break;
@@ -269,39 +269,39 @@ describe('REST API client', () => {
           assert.fail('too many callbacks');
           break;
       }
-    }, { qs: { children: 'true', limit: 100 } });
+    }, { qs: { fields: 'children' } });
   });
 
   it('can retrieve a multi-page directory listing', (done) => {
     const api0 = server
-      .get('/api/2/path/info/foobar')
-      .query({ children: 'true', limit: 100 })
-      .reply(200, '{ "page": 1, "pages": 2, "children": [{ "name": "foo" }, { "name": "bar" }]}');
+      .get('/api/3/path/info/foobar')
+      .query({ fields: 'children', 'children.limit': 2 })
+      .reply(200, '{ "children": { "count": 2, "limit": 2, "offset": null, "results": [{ "name": "foo" }, { "name": "bar" }]}}');
 
     const api1 = server
-      .get('/api/2/path/info/foobar')
-      .query({ children: 'true', limit: 100, page: 2 })
-      .reply(200, '{ "page": 2, "pages": 2, "children": [{ "name": "baz" }, { "name": "quux" }]}');
+      .get('/api/3/path/info/foobar')
+      .query({ fields: 'children', 'children.limit': 2, 'children.offset': 2 })
+      .reply(200, '{ "children": { "count": 1, "limit": 2, "offset": 2, "results": [{ "name": "baz" }]}}');
 
     let calls = 0;
-    client.info('/foobar', (e, json) => {
+    client.info('/foobar', (e, children) => {
       assertNoError(e);
 
       // Should receive 3 calls, 2 pages plus null.
-      switch (calls += 1) {
+      // eslint-disable-next-line no-plusplus
+      switch (++calls) {
         case 1:
-          assert(json[0].name === 'foo');
-          assert(json[1].name === 'bar');
+          assert(children[0].name === 'foo');
+          assert(children[1].name === 'bar');
           break;
 
         case 2:
-          assert(json[0].name === 'baz');
-          assert(json[1].name === 'quux');
+          assert(children[0].name === 'baz');
           assert(api0.isDone());
           break;
 
         case 3:
-          assert(json === null);
+          assert(children === null);
           assert(api1.isDone());
           done();
           break;
@@ -310,7 +310,7 @@ describe('REST API client', () => {
           assert.fail('too many callbacks');
           break;
       }
-    }, { qs: { children: 'true', limit: 100 } });
+    }, { qs: { fields: 'children', 'children.limit': 2 } });
   });
 
   it('can create a directory', (done) => {
@@ -441,11 +441,11 @@ describe('REST API client', () => {
 
   it('can handle API throttling', (done) => {
     const api0 = server
-      .get('/api/2/path/info/foobar')
+      .get('/api/3/path/info/foobar')
       .reply(429, 'THROTTLED', { 'Retry-After': '0.1' });
 
     const api1 = server
-      .get('/api/2/path/info/foobar')
+      .get('/api/3/path/info/foobar')
       .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
 
     client.info('/foobar', (e) => {
@@ -458,7 +458,7 @@ describe('REST API client', () => {
 
   it('properly encodes special chars', (done) => {
     const api = server
-      .get('/api/2/path/info/foo%26bar')
+      .get('/api/3/path/info/foo%26bar')
       .reply(200, '{ "name": "foobar", "isdir": true, "isfile": false }');
 
     client.info('foo&bar', (e) => {
