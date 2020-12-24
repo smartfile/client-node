@@ -295,9 +295,10 @@ describe('File System Abstraction', () => {
   it('reports errors correctly during upload', (done) => {
     const api = server
       .put('/api/3/path/data/foobar')
-      .reply(200, '{ "detail": "Some error happened" }');
+      .reply(200, '{ "status": 400, "detail": "Some error happened" }');
 
     const s = sffs.createWriteStream('/foobar', (e) => {
+      assert.strictEqual(e.statusCode, 400);
       assert.strictEqual(e.message, 'Some error happened');
       assert(api.isDone());
       done();
