@@ -238,6 +238,62 @@ describe('File System Abstraction', () => {
     });
   });
 
+  it('can readdirstats() incrementally with limited fields', (done) => {
+    const api0 = server
+      .get('/api/2/path/info/foobar')
+      .query({
+        children: 'true', limit: 2, fields: ['name', 'path'],
+      })
+      .reply(200, '{ "page": 1, "pages": 2, "name": "foobar", "path": "/foobar", "children": [{"name": "foo", "path": "/foobar/foo"}, {"name": "bar", "path": "/foobar/bar"}]}');
+
+    const api1 = server
+      .get('/api/2/path/info/foobar')
+      .query({
+        children: 'true', limit: 2, page: 2, fields: ['name', 'path'],
+      })
+      .reply(200, '{ "page": 2, "pages": 2, "name": "foobar", "path": "/foobar", "children": [{"name": "baz", "path": "/foobar/baz"}, {"name": "quux", "path": "/foobar/quux"}]}');
+
+    let calls = 0;
+    sffs.readdirstats('/foobar', (e, json) => {
+      // eslint-disable-next-line no-plusplus
+      switch (++calls) {
+        case 1:
+          assert.ifError(e);
+          assert(sffs.statCache['/foobar']);
+          assert(sffs.statCache['/foobar/foo']);
+          assert(sffs.statCache['/foobar/bar']);
+          assert.strictEqual(json[0].name, 'foo');
+          assert.strictEqual(json[1].name, 'bar');
+          break;
+
+        case 2:
+          assert.ifError(e);
+          assert(sffs.statCache['/foobar']);
+          assert(sffs.statCache['/foobar/baz']);
+          assert(sffs.statCache['/foobar/quux']);
+          assert.strictEqual(json[0].name, 'baz');
+          assert.strictEqual(json[1].name, 'quux');
+          assert(api0.isDone());
+          break;
+
+        case 3:
+          assert.ifError(e);
+          assert.strictEqual(json, null);
+          assert(api1.isDone());
+          done();
+          break;
+
+        default:
+          assert.fail('too many callbacks');
+          break;
+      }
+    }, {
+      incremental: true,
+      limit: 2,
+      fields: ['name', 'path'],
+    });
+  });
+
   it('can open a write stream', (done) => {
     const api = server
       .put('/api/3/path/data/foobar')

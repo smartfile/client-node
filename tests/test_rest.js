@@ -271,6 +271,36 @@ describe('REST API client', () => {
     }, { qs: { children: 'true', limit: 100 } });
   });
 
+  it('can retrieve a directory listing with limited fields', (done) => {
+    const api = server
+      .get('/api/2/path/info/foobar')
+      .query({ children: 'true', limit: 100, fields: ['name', 'size', 'time'] })
+      .reply(200, '{ "page": 1, "pages": 1, "children": [{ "name": "foo" }, { "name": "bar" }]}');
+
+    let calls = 0;
+    client.info('/foobar', (e, json) => {
+      assert.ifError(e);
+
+      // Should receive 2 calls, a page of results plus null.
+      switch (calls += 1) {
+        case 1:
+          assert.strictEqual(json[0].name, 'foo');
+          assert.strictEqual(json[1].name, 'bar');
+          break;
+
+        case 2:
+          assert.strictEqual(json, null);
+          assert(api.isDone());
+          done();
+          break;
+
+        default:
+          assert.fail('too many callbacks');
+          break;
+      }
+    }, { qs: { children: 'true', limit: 100, fields: ['name', 'size', 'time'] } });
+  });
+
   it('can retrieve a multi-page directory listing', (done) => {
     const api0 = server
       .get('/api/2/path/info/foobar')
