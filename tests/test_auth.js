@@ -70,6 +70,7 @@ describe('SmartFile Basic API client', () => {
       reqheaders: {
         cookie: 'sessionid=bar; csrftoken=ABCD',
         'x-csrftoken': 'ABCD',
+        Referer: 'http://fakeapi.foo/api/2/session/',
       },
     })
       .post('/api/2/session/')
@@ -88,6 +89,7 @@ describe('SmartFile Basic API client', () => {
       reqheaders: {
         cookie: 'sessionid=bar; csrftoken=ABCD',
         'x-csrftoken': 'ABCD',
+        Referer: 'http://fakeapi.foo/api/2/session/',
       },
     })
       .delete('/api/2/session/')
