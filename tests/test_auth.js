@@ -2,12 +2,10 @@ const nock = require('nock');
 const assert = require('assert');
 const { morph } = require('mock-env');
 const { CookieAccessInfo } = require('cookiejar');
-const { logger, BasicClient } = require('../lib');
+const { BasicClient } = require('../lib');
 
 
 const API_URL = 'http://fakeapi.foo/';
-
-logger.silent = true;
 
 
 describe('SmartFile Basic API client', () => {
@@ -24,6 +22,7 @@ describe('SmartFile Basic API client', () => {
 
     morph(() => {
       client = new BasicClient();
+      client.logger.silent = true;
     }, {
       SMARTFILE_API_URL: API_URL,
       SMARTFILE_USER: 'foobar',

@@ -1,6 +1,6 @@
 const nock = require('nock');
 const assert = require('assert');
-const { logger, Client, Keys } = require('../lib');
+const { Client, Keys } = require('../lib');
 
 
 const API_URL = 'http://fakeapi.foo/';
@@ -23,9 +23,6 @@ const KEY1 = {
 const KEYS = [KEY0, KEY1];
 
 
-logger.silent = true;
-
-
 describe('SSH Key Management', () => {
   let server;
   let keys;
@@ -33,6 +30,7 @@ describe('SSH Key Management', () => {
   beforeEach('', (done) => {
     nock.cleanAll();
     const rest = new Client({ baseUrl: API_URL });
+    rest.logger.silent = true;
     keys = new Keys(rest, 'foobar');
     server = nock(API_URL);
     done();

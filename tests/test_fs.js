@@ -30,6 +30,7 @@ describe('File System Abstraction', () => {
 
   beforeEach('', (done) => {
     const rest = new smartfile.Client({ baseUrl: API_URL });
+    rest.logger.silent = true;
     sffs = new smartfile.FileSystem(rest);
     server = nock(API_URL);
 
