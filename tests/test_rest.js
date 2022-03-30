@@ -1,13 +1,11 @@
 const nock = require('nock');
 const assert = require('assert');
 const streams = require('memory-streams');
-const { logger, Client } = require('../lib');
+const { Client } = require('../lib');
 const { normPath, encodePath } = require('../lib/rest/client');
 
 
 const API_URL = 'http://fakeapi.foo/';
-
-logger.silent = true;
 
 
 describe('REST API client', () => {
@@ -28,6 +26,7 @@ describe('REST API client', () => {
         'X-Custom-Header': 'foobar',
       },
     });
+    client.logger.silent = true;
 
     const api = nock(API_URL, {
       reqheaders: {
@@ -51,6 +50,7 @@ describe('REST API client', () => {
 
   beforeEach('', (done) => {
     client = new Client({ baseUrl: API_URL });
+    client.logger.silent = true;
     server = nock(API_URL);
 
     done();
