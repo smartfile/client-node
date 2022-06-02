@@ -393,6 +393,29 @@ describe('REST API client', () => {
     });
   });
 
+  it('can handle an error deleting a file or directory', (done) => {
+    const api0 = server
+      .post('/api/2/path/oper/remove/', { path: '/foobar' })
+      .reply(200, '{ "uuid": "12345" }');
+
+    const api1 = server
+      .get('/api/2/task/12345/')
+      .reply(200, ' { "result": { "status": "PENDING", "result": {} }}');
+
+    const api2 = server
+      .get('/api/2/task/12345/')
+      .reply(200, ' { "result": { "status": "SUCCESS", "result": { "errors": { "/foobar": "Directory is not empty b\\"/foobar\\" [None]"} } }}');
+
+    client.delete('/foobar', (e) => {
+      assert(e);
+      assert.strictEqual(e.toString(), 'Error: Partial failure: result.result.errors={"/foobar":"Directory is not empty b\\"/foobar\\" [None]"}');
+      assert(api0.isDone());
+      assert(api1.isDone());
+      assert(api2.isDone());
+      done();
+    });
+  });
+
   it('can delete a file', (done) => {
     const api0 = server
       .delete('/api/3/path/data/foobar')
