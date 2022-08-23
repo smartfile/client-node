@@ -349,6 +349,21 @@ describe('File System Abstraction', () => {
     s.end();
   });
 
+  it('reports errors correctly before starting upload', (done) => {
+    const api = server
+      .put('/api/3/path/data/foobar')
+      .reply(402, '{ "detail": "Some error happened" }');
+
+    const s = sffs.createWriteStream('/foobar', (e) => {
+      assert.strictEqual(e.statusCode, 402);
+      assert.strictEqual(e.message, 'Some error happened');
+      assert(api.isDone());
+      done();
+    });
+    s.write('BODY');
+    s.end();
+  });
+
   it('reports errors correctly during upload', (done) => {
     const api = server
       .put('/api/3/path/data/foobar')
