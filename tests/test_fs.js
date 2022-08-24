@@ -379,6 +379,19 @@ describe('File System Abstraction', () => {
     s.end();
   });
 
+  it('reports errors correctly before starting download', (done) => {
+    const api = server
+      .get('/api/2/path/data/foobar')
+      .reply(402, { detail: 'Some error happened' });
+
+    sffs.createReadStream('/foobar', (e) => {
+      assert.strictEqual(e.statusCode, 402);
+      assert.strictEqual(e.message, 'Some error happened');
+      assert(api.isDone());
+      done();
+    });
+  });
+
   it('can open a read stream', (done) => {
     const api = server
       .get('/api/2/path/data/foobar')
