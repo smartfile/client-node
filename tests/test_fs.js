@@ -8,11 +8,11 @@ const { CACHE_HIT } = require('../lib/fs/filesystem');
 const API_URL = 'http://fakeapi.foo/';
 
 
-function assertMetric(metric, value) {
+async function assertMetric(metric, value) {
   // Asserts that a paritcular metric has the desired value.
   // This function assumes only one instance of the metrics (unique label set).
   // Also, value === 0 is a special case, it allows the metric to be missing.
-  const { values } = metric.get();
+  const { values } = await metric.get();
 
   if (values.length === 0 && value === 0) {
     return;
