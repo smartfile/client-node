@@ -73,18 +73,9 @@ describe('SmartFile Basic API client', () => {
       },
     })
       .post('/api/2/session/')
-      .reply(201, '{}');
+      .reply(201, '{ "user": { "username": "username" } }');
 
     const api2 = nock(API_URL, {
-      reqheaders: {
-        cookie: 'sessionid=bar; csrftoken=ABCD',
-      },
-    })
-      .get('/api/2/whoami/')
-      .twice()
-      .reply(200, '{ "username": "user" }');
-
-    const api3 = nock(API_URL, {
       reqheaders: {
         cookie: 'sessionid=bar; csrftoken=ABCD',
         'x-csrftoken': 'ABCD',
@@ -108,16 +99,16 @@ describe('SmartFile Basic API client', () => {
       assert(api0.isDone());
 
       // Ensure we can handle Cookie and CSRF Token.
-      client.startSession((start1Error) => {
+      client.startSession((start1Error, json) => {
         assert(!start1Error);
         assert(api1.isDone());
-        assert(api2.isDone());
+        assert.strictEqual(json.user.username, 'username');
 
         // Ensure we can handle logout().
         client.endSession((endError) => {
           // Credentials restored.
           assert(!endError);
-          assert(api3.isDone());
+          assert(api2.isDone());
           assert.strictEqual(0, client.cookies.getCookies(new CookieAccessInfo('fakeapi.foo', '/', false, false)).length);
           done();
         });
