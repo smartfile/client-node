@@ -48,7 +48,7 @@
     "eslint-plugin-mocha": "^6.3.0",
     "eslint-plugin-node": "^11.1.0",
     "husky": "^4.2.3",
-    "mocha": "^7.1.1",
+    "mocha": "^10.2.0",
     "mock-env": "^0.2.0",
     "nock": "^12.0.3",
     "nyc": "^15.0.1"
